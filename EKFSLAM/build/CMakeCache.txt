@@ -139,7 +139,7 @@ CMAKE_OSX_ARCHITECTURES:STRING=
 
 //Minimum OS X version to target for deployment (at runtime); newer
 // APIs weak linked. Set to empty string for default value.
-CMAKE_OSX_DEPLOYMENT_TARGET:STRING=11.6
+CMAKE_OSX_DEPLOYMENT_TARGET:STRING=11.7
 
 //The product will be built against the headers and libraries located
 // inside the indicated SDK.
@@ -217,12 +217,6 @@ CMAKE_STRIP:FILEPATH=/Applications/Xcode.app/Contents/Developer/Toolchains/Xcode
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //Value Computed by CMake
-EKF_BINARY_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics/EKFSLAM/build
-
-//Value Computed by CMake
-EKF_IS_TOP_LEVEL:STATIC=ON
-
-//Value Computed by CMake
 EKF_SLAM_BINARY_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics/EKFSLAM/build
 
 //Value Computed by CMake
@@ -230,9 +224,6 @@ EKF_SLAM_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 EKF_SLAM_SOURCE_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics/EKFSLAM
-
-//Value Computed by CMake
-EKF_SOURCE_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics/EKFSLAM
 
 //The directory containing a CMake configuration file for Eigen3.
 Eigen3_DIR:PATH=/usr/local/share/eigen3/cmake

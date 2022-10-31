@@ -139,7 +139,7 @@ CMAKE_OSX_ARCHITECTURES:STRING=
 
 //Minimum OS X version to target for deployment (at runtime); newer
 // APIs weak linked. Set to empty string for default value.
-CMAKE_OSX_DEPLOYMENT_TARGET:STRING=11.6
+CMAKE_OSX_DEPLOYMENT_TARGET:STRING=11.7
 
 //The product will be built against the headers and libraries located
 // inside the indicated SDK.
@@ -228,8 +228,8 @@ EKF_SOURCE_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics/Localization
 //The directory containing a CMake configuration file for Eigen3.
 Eigen3_DIR:PATH=/usr/local/share/eigen3/cmake
 
-//The directory containing a CMake configuration file for boost_ISOSTREAMS.
-boost_ISOSTREAMS_DIR:PATH=boost_ISOSTREAMS_DIR-NOTFOUND
+//Path to a program.
+GNUPLOT_EXECUTABLE:FILEPATH=/usr/local/bin/gnuplot
 
 //The directory containing a CMake configuration file for boost_atomic.
 boost_atomic_DIR:PATH=/usr/local/lib/cmake/boost_atomic-1.79.0
@@ -502,6 +502,10 @@ CMAKE_UNAME:INTERNAL=/usr/bin/uname
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 //Details about finding Boost
 FIND_PACKAGE_MESSAGE_DETAILS_Boost:INTERNAL=[/usr/local/lib/cmake/Boost-1.79.0/BoostConfig.cmake][c ][v1.79.0(1.78)]
+//Details about finding Gnuplot
+FIND_PACKAGE_MESSAGE_DETAILS_Gnuplot:INTERNAL=[/usr/local/bin/gnuplot][v5.4.4(5.4)]
+//ADVANCED property for variable: GNUPLOT_EXECUTABLE
+GNUPLOT_EXECUTABLE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: boost_atomic_DIR
 boost_atomic_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: boost_chrono_DIR

@@ -6,7 +6,7 @@
 #include <cmath>
 #include <ctime>
 
-#include "gnuplot-iostream/gnuplot-iostream.h"
+#include "gnuplot-iostream.h"
 // #include "EKF.h"
 #include "robot.h"
 

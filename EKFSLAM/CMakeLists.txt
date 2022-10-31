@@ -8,6 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE__CXX_FLAGS} -std=c++17")
 # set the project name
 project(EKF_SLAM)
 
+get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE
 )
@@ -19,7 +20,10 @@ find_package (Gnuplot 5.4 COMPONENTS ALL
 include_directories(${EIGEN_INCLUDE_DIR}
 					${BOOST_INCLUDE_DIRS}
 					${GNUPLOT_INCLUDE_DIRS}
-					/Users/NathanDurocher/cppyourself/CppRobotics/Localization gnuplot-iostream
+					${PARENT_DIR}/gnuplot-iostream
+)
+
+link_directories(${PARENT_DIR}/gnuplot-iostream
 )
 
 # add the executable
