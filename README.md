@@ -9,7 +9,7 @@ I'm new to this, so if you have any suggestion please feel free to let me know.
  
 ## Screenshots
 The EKF for a noisy GPS.
-![](images/EKF_example.png)
+![](Images/EKF_example.png)
 
 ## Tech/framework used
 <b>Built with</b>
