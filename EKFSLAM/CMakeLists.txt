@@ -19,7 +19,6 @@ find_package (Gnuplot 5.4 COMPONENTS ALL
 
 include_directories(${EIGEN_INCLUDE_DIR}
 					${BOOST_INCLUDE_DIRS}
-					${GNUPLOT_INCLUDE_DIRS}
 					${PARENT_DIR}/gnuplot-iostream
 )
 
