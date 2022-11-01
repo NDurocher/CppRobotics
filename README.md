@@ -2,7 +2,7 @@
  A C++ translation of PythonRobotics by AtsushiSakai
 
 ## Motivation
-This project is space to work on my C++ skills and to get more familiar with common robotics algorithms.
+This project is a space to work on my C++ skills and to get more familiar with common robotics algorithms.
 
 ## Code style
 I'm new to this, so if you have any suggestion please feel free to let me know.
