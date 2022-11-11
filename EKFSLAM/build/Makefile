@@ -117,89 +117,65 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named EKF_SLAM
+# Target rules for targets named EKFSLAM
 
 # Build rule for target.
-EKF_SLAM: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 EKF_SLAM
-.PHONY : EKF_SLAM
+EKFSLAM: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 EKFSLAM
+.PHONY : EKFSLAM
 
 # fast build rule for target.
-EKF_SLAM/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKF_SLAM.dir/build.make CMakeFiles/EKF_SLAM.dir/build
-.PHONY : EKF_SLAM/fast
+EKFSLAM/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKFSLAM.dir/build.make CMakeFiles/EKFSLAM.dir/build
+.PHONY : EKFSLAM/fast
 
-EKF.o: EKF.cpp.o
-.PHONY : EKF.o
-
-# target to build an object file
-EKF.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKF_SLAM.dir/build.make CMakeFiles/EKF_SLAM.dir/EKF.cpp.o
-.PHONY : EKF.cpp.o
-
-EKF.i: EKF.cpp.i
-.PHONY : EKF.i
-
-# target to preprocess a source file
-EKF.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKF_SLAM.dir/build.make CMakeFiles/EKF_SLAM.dir/EKF.cpp.i
-.PHONY : EKF.cpp.i
-
-EKF.s: EKF.cpp.s
-.PHONY : EKF.s
-
-# target to generate assembly for a file
-EKF.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKF_SLAM.dir/build.make CMakeFiles/EKF_SLAM.dir/EKF.cpp.s
-.PHONY : EKF.cpp.s
-
-SLAM_EKF.o: SLAM_EKF.cpp.o
-.PHONY : SLAM_EKF.o
+include/EKFSLAM/robot.o: include/EKFSLAM/robot.cpp.o
+.PHONY : include/EKFSLAM/robot.o
 
 # target to build an object file
-SLAM_EKF.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKF_SLAM.dir/build.make CMakeFiles/EKF_SLAM.dir/SLAM_EKF.cpp.o
-.PHONY : SLAM_EKF.cpp.o
+include/EKFSLAM/robot.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKFSLAM.dir/build.make CMakeFiles/EKFSLAM.dir/include/EKFSLAM/robot.cpp.o
+.PHONY : include/EKFSLAM/robot.cpp.o
 
-SLAM_EKF.i: SLAM_EKF.cpp.i
-.PHONY : SLAM_EKF.i
+include/EKFSLAM/robot.i: include/EKFSLAM/robot.cpp.i
+.PHONY : include/EKFSLAM/robot.i
 
 # target to preprocess a source file
-SLAM_EKF.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKF_SLAM.dir/build.make CMakeFiles/EKF_SLAM.dir/SLAM_EKF.cpp.i
-.PHONY : SLAM_EKF.cpp.i
+include/EKFSLAM/robot.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKFSLAM.dir/build.make CMakeFiles/EKFSLAM.dir/include/EKFSLAM/robot.cpp.i
+.PHONY : include/EKFSLAM/robot.cpp.i
 
-SLAM_EKF.s: SLAM_EKF.cpp.s
-.PHONY : SLAM_EKF.s
+include/EKFSLAM/robot.s: include/EKFSLAM/robot.cpp.s
+.PHONY : include/EKFSLAM/robot.s
 
 # target to generate assembly for a file
-SLAM_EKF.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKF_SLAM.dir/build.make CMakeFiles/EKF_SLAM.dir/SLAM_EKF.cpp.s
-.PHONY : SLAM_EKF.cpp.s
+include/EKFSLAM/robot.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKFSLAM.dir/build.make CMakeFiles/EKFSLAM.dir/include/EKFSLAM/robot.cpp.s
+.PHONY : include/EKFSLAM/robot.cpp.s
 
-robot.o: robot.cpp.o
-.PHONY : robot.o
+src/main.o: src/main.cpp.o
+.PHONY : src/main.o
 
 # target to build an object file
-robot.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKF_SLAM.dir/build.make CMakeFiles/EKF_SLAM.dir/robot.cpp.o
-.PHONY : robot.cpp.o
+src/main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKFSLAM.dir/build.make CMakeFiles/EKFSLAM.dir/src/main.cpp.o
+.PHONY : src/main.cpp.o
 
-robot.i: robot.cpp.i
-.PHONY : robot.i
+src/main.i: src/main.cpp.i
+.PHONY : src/main.i
 
 # target to preprocess a source file
-robot.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKF_SLAM.dir/build.make CMakeFiles/EKF_SLAM.dir/robot.cpp.i
-.PHONY : robot.cpp.i
+src/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKFSLAM.dir/build.make CMakeFiles/EKFSLAM.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
 
-robot.s: robot.cpp.s
-.PHONY : robot.s
+src/main.s: src/main.cpp.s
+.PHONY : src/main.s
 
 # target to generate assembly for a file
-robot.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKF_SLAM.dir/build.make CMakeFiles/EKF_SLAM.dir/robot.cpp.s
-.PHONY : robot.cpp.s
+src/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/EKFSLAM.dir/build.make CMakeFiles/EKFSLAM.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
 
 # Help Target
 help:
@@ -209,16 +185,13 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... EKF_SLAM"
-	@echo "... EKF.o"
-	@echo "... EKF.i"
-	@echo "... EKF.s"
-	@echo "... SLAM_EKF.o"
-	@echo "... SLAM_EKF.i"
-	@echo "... SLAM_EKF.s"
-	@echo "... robot.o"
-	@echo "... robot.i"
-	@echo "... robot.s"
+	@echo "... EKFSLAM"
+	@echo "... include/EKFSLAM/robot.o"
+	@echo "... include/EKFSLAM/robot.i"
+	@echo "... include/EKFSLAM/robot.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
 .PHONY : help
 
 

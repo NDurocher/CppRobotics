@@ -152,7 +152,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=EKF_SLAM
+CMAKE_PROJECT_NAME:STATIC=EKFSLAM
 
 //Path to a program.
 CMAKE_RANLIB:FILEPATH=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib
@@ -217,13 +217,13 @@ CMAKE_STRIP:FILEPATH=/Applications/Xcode.app/Contents/Developer/Toolchains/Xcode
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //Value Computed by CMake
-EKF_SLAM_BINARY_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics/EKFSLAM/build
+EKFSLAM_BINARY_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics/EKFSLAM/build
 
 //Value Computed by CMake
-EKF_SLAM_IS_TOP_LEVEL:STATIC=ON
+EKFSLAM_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
-EKF_SLAM_SOURCE_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics/EKFSLAM
+EKFSLAM_SOURCE_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics/EKFSLAM
 
 //The directory containing a CMake configuration file for Eigen3.
 Eigen3_DIR:PATH=/usr/local/share/eigen3/cmake
