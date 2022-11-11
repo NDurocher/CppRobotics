@@ -7,7 +7,6 @@
 #include <ctime>
 
 #include "gnuplot-iostream.h"
-// #include "EKF.h"
 #include "../include/EKFSLAM/robot.h"
 
 using namespace std;
