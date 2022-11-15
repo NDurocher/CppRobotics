@@ -18,6 +18,8 @@ Sample output from a section of KITTI data.
 - [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page)
 
 ## How to use?
+This program uses data from the open source project[KITTI Vision Suite Benchmark](https://www.cvlibs.net/datasets/kitti/eval_odometry.php) you have to first register as a user to download the data. 
+
 1. Create and enter a build directory
 ```
 mkdir build & cd build
