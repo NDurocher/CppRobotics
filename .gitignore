@@ -1,2 +1,5 @@
 .idea
 Visual_Odometry/data/**
+Visual_Odometry/build/*
+GPS_EKF/build/*
+SLAMEKF/build/*
