@@ -9,6 +9,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp>
+#include <opencv2/xfeatures2d.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/core/eigen.hpp>
@@ -113,8 +114,11 @@ void VO::get_matches(unsigned& i, std::vector<cv::Point2f>& q1, std::vector<cv::
 }
 
 void VO::get_poses(std::vector<cv::Point2f>& q1, std::vector<cv::Point2f>& q2, cv::Mat& Trans_Mat){
-	cv::Mat Emat = cv::findEssentialMat(q1, q2, _K);
-	//decompose essitial matrix into R and t
+	cv::Mat mask_ransac;
+	cv::findHomography(q1, q2, cv::RANSAC, 3, mask_ransac, 1000, 0.995);
+	
+	cv::Mat Emat = cv::findEssentialMat(q1, q2, _K, cv::RANSAC, 0.999, 2.0, mask_ransac);
+	// Decompose essitial matrix into R and t
 	cv::Mat R,t;
 	decomp_essential_mat(Emat, R, t, q1, q2);
 	formTransformMat(R, t, Trans_Mat);
@@ -220,7 +224,7 @@ void VO::stringLine2Matrix(cv::Mat& tempMat, int& rows, int& cols, std::string& 
 void VO::showvideo(){
 	for (auto img : _images){
 		cv::imshow("KITTI_Data", img);
-	    int k = cv::waitKey(4); // Wait for a keystroke in the window
+	    int k = cv::waitKey(0); // Wait for a keystroke in the window
     }
     cv::destroyAllWindows();
 }

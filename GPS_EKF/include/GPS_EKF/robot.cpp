@@ -142,6 +142,18 @@ void robot::predict_update(Eigen::MatrixXd& Xest, Eigen::MatrixXd& U, Eigen::Mat
 	// return X;
 }
 
+void robot::RTS(Eigen::MatrixXd& Xest, Eigen::MatrixXd& XestPrev, Eigen::MatrixXd& Pprev){
+	Eigen::MatrixXd F(4,4);
+	F << 1,0,0,0,
+		 0,1,0,0,
+		 0,0,1,0,
+		 0,0,0,0;
+
+ 	Eigen::MatrixXd Cx = Pprev*F.transpose()*Pprev.transpose();
+
+	XestPrev = XestPrev + Cx*(Xest - XestPrev);
+	Pprev = Pprev + Cx*(P_t - Pprev)*Cx.transpose();
+}
 
 
 

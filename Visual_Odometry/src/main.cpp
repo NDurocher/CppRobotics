@@ -3,13 +3,13 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/eigen.hpp>
 
-
 #include "../include/Visual_Odometry/vo.h"
 #include "gnuplot-iostream.h"
 
 int main(int argc, char** argv )
 {   
-    Gnuplot gp, gp2;
+    Gnuplot gp;
+    Gnuplot gp2;
     // gp << "set xrange [-10:10]\n";
     bool SHOW_PLOT = true;
     std::string dataDir = "../data/KITTI_sequence_2/";

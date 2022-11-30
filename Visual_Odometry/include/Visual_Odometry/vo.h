@@ -7,6 +7,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp>
+#include <opencv2/xfeatures2d.hpp>
 #include <opencv2/calib3d.hpp>
 #include <Eigen/Dense>
 
@@ -21,6 +22,7 @@ public:
 	std::vector<cv::Mat> _poses; // Contains ground truth poses for camera
 	std::vector<std::string> _strPoses;
 	std::vector<cv::Mat> _images;
+	// cv::Ptr<cv::xfeatures2d::SURF> _orb = cv::xfeatures2d::SURF::create(400, 4, 2, true, false);
 	cv::Ptr<cv::FeatureDetector> _orb = cv::ORB::create(3000);
 	cv::Ptr<cv::DescriptorMatcher> _flann = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
 

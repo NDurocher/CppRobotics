@@ -35,6 +35,8 @@ public:
 
 	void Kinematics(Eigen::MatrixXd& X, Eigen::MatrixXd& U);	
 
+	void RTS(Eigen::MatrixXd& Xest, Eigen::MatrixXd& XestPrev, Eigen::MatrixXd& Pprev);
+
 
 private:
 	double position_y;

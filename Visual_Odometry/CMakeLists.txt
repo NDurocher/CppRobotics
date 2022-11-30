@@ -15,12 +15,15 @@ find_package(Boost 1.78 COMPONENTS ALL)
 find_package(Gnuplot 5.4 COMPONENTS ALL)
 find_package(OpenCV REQUIRED)
 
+set(OpenCV_INCLUDE_DIRS /Users/NathanDurocher/opencv/include)
 
 include_directories(${EIGEN_INCLUDE_DIRS}
 					${BOOST_INCLUDE_DIRS}
 					${PARENT_DIR}/gnuplot-iostream
 					${OpenCV_INCLUDE_DIRS}
 )
+
+# message(${OpenCV_INCLUDE_DIRS})
 
 link_directories(${PARENT_DIR}/gnuplot-iostream
 )
@@ -38,3 +41,5 @@ target_link_libraries (${PROJECT_NAME}
 						${Gnuplot_LIBRARIES}
 						${OpenCV_LIBS}
 )
+
+ # message(${OpenCV_LIBS})
