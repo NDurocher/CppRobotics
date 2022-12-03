@@ -20,17 +20,19 @@ namespace fs = std::filesystem;
 
 // VO::VO(){}
 
-VO::VO(std::string& dataDir){
+VO::VO(std::string& dataDir, std::string& sequence){
 
-	load_images(dataDir);
-	load_poses(dataDir);
-	load_calib(dataDir);
+	load_images(dataDir, sequence);
+	std::cout << "Images Loaded" << std::endl;
+	load_poses(dataDir, sequence);
+	std::cout << "GT Poses Loaded" << std::endl;
+	load_calib(dataDir, sequence);
+	std::cout << "Camera Calibs Loaded" << std::endl;
 }
 
-void VO::load_images(std::string filePath){
-
+void VO::load_images(std::string filePath, std::string& sequence){
 	// Import left camera images (can change to image_r and check diff in output)
-	filePath.append("image_l");
+	filePath.append("/" + sequence + "/image_1");
 	// std::sort(files_in_directory.begin(), files_in_directory.end())
 	std::vector<std::string> sorted_paths;
 	for (auto & f : fs::directory_iterator(filePath)){
@@ -42,15 +44,14 @@ void VO::load_images(std::string filePath){
 	}
 }
 
-void VO::load_calib(std::string filePath){
-	filePath.append("calib.txt");
+void VO::load_calib(std::string filePath, std::string& sequence){
+	filePath.append("/" + sequence + "/calib.txt");
 
 	std::ifstream calibFile(filePath);
 
 	int rows = 3;
 	int cols = 4;
 	cv::Mat tempMat = cv::Mat::zeros(rows, cols, CV_32F);
-
 	std::string line;
 	while (getline(calibFile, line)){
 		stringLine2Matrix(tempMat, rows, cols, line);	
@@ -59,13 +60,12 @@ void VO::load_calib(std::string filePath){
 
 	calibFile.close();
 
-	_K = _calibs[0].rowRange(0,3).colRange(0,3);
-	_P = _calibs[0].rowRange(0,3).colRange(0,4);;
+	_K = _calibs[1].rowRange(0,3).colRange(0,3);
+	_P = _calibs[1].rowRange(0,3).colRange(0,4);;
 }
 
-void VO::load_poses(std::string filePath){
-	
-	filePath.append("poses.txt");
+void VO::load_poses(std::string filePath, std::string& sequence){
+	filePath.append("/poses/" + sequence + ".txt");
 
 	std::ifstream poseFile(filePath);
 
@@ -78,7 +78,6 @@ void VO::load_poses(std::string filePath){
 		stringLine2Matrix(tempMat, rows, cols, line);
 		_poses.push_back(tempMat.clone());
 	}
-
 	poseFile.close();
 }
 
@@ -190,8 +189,13 @@ void VO::stringLine2Matrix(cv::Mat& tempMat, int& rows, int& cols, std::string& 
 	std::string strNum;
 	const std::string delim= " ";
 
-	for (std::string::const_iterator i =line.begin(); i != line.end(); i++){
-		
+	// if the line contains the sensor prefix, erase it
+	if (line.find("P") != std::string::npos){
+		line.erase(0,4);
+	}
+
+	for (std::string::const_iterator i = line.begin(); i != line.end(); i++){
+	
 		// If i is not a delim, then append it to strnum
 		if (delim.find(*i) == std::string::npos){ 
 			strNum += *i;

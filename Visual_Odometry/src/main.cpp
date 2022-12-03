@@ -12,8 +12,9 @@ int main(int argc, char** argv )
     Gnuplot gp2;
     // gp << "set xrange [-10:10]\n";
     bool SHOW_PLOT = true;
-    std::string dataDir = "../data/KITTI_sequence_2/";
-    VO vo(dataDir);
+    std::string dataDir = "../data/dataset/sequences";
+    std::string sequence = "03"; // # 00-21, include leading zero
+    VO vo(dataDir, sequence);
 
     std::vector<Eigen::MatrixXf> gt_pose;
     std::vector<Eigen::MatrixXf> estimated_pose;
@@ -41,8 +42,8 @@ int main(int argc, char** argv )
             vo.get_poses(q1,q2, Transform);
             Eigen::MatrixXf Ecp, Etrans;
             cv::cv2eigen(current_pose, Ecp);
-            cv::cv2eigen(Transform, Etrans);
-            Ecp = Ecp * Etrans.inverse();
+            cv::cv2eigen(Transform.inv(), Etrans);
+            Ecp = Ecp * Etrans;
             cv::eigen2cv(Ecp, current_pose);
             
         }
@@ -55,8 +56,10 @@ int main(int argc, char** argv )
         float E = sqrt(pow(est_x[p]-true_x[p],2)+pow(est_y[p]-true_y[p],2));
         error.push_back(E);
         framenum.push_back(p);
+
     }
- 
+
+
     // Plot paths here:
     if (SHOW_PLOT){
         gp << "plot" << gp.file1d(boost::make_tuple(est_x, est_y)) \
