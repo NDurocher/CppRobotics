@@ -1,9 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_BUILD_TYPE Debug)
-
-# specify the C++ standard
-set(CMAKE_CXX_FLAGS "${CMAKE__CXX_FLAGS} -std=c++17")
 
 # set the project name
 project(GPS_EKF)
@@ -20,6 +17,7 @@ find_package (Gnuplot 5.4 COMPONENTS ALL
 include_directories(${EIGEN_INCLUDE_DIRS}
 					${BOOST_INCLUDE_DIRS}
 					${PARENT_DIR}/gnuplot-iostream
+					include/
 )
 
 link_directories(${PARENT_DIR}/gnuplot-iostream
@@ -27,13 +25,14 @@ link_directories(${PARENT_DIR}/gnuplot-iostream
 
 # add the executable
 add_executable(${PROJECT_NAME}
-				src/main.cpp
-				include/${PROJECT_NAME}/robot.cpp
-				include/${PROJECT_NAME}/robot.h
+				main.cpp
+				EKF.cpp
+				include/EKF.h
 ) 
 
-target_link_libraries (${PROJECT_NAME}
+target_link_libraries (${PROJECT_NAME} PUBLIC
 						Eigen3::Eigen
 						${Boost_LIBRARIES}
 						${Gnuplot_LIBRARIES}
+						CppRob::robot
 )
