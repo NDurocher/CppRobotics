@@ -9,11 +9,9 @@ using namespace std;
 
 double pi2pi(double angle);
 
-// Update to inherit robot from library
-class EKFSLAM
-{
+class EKFSLAM : robot{
 public:
-	EKFSLAM();
+	EKFSLAM(double dt);
 
 	double MAX_RANGE = 15.; // meters
 
@@ -44,6 +42,9 @@ public:
 	Eigen::MatrixXd H_jacob(double q, Eigen::MatrixXd& delta, Eigen::MatrixXd& xest, int i);
 
 private:
+	default_random_engine m_generator;
+  	normal_distribution<double> m_distribution {0.0,1.0};
+
 	Eigen::MatrixXd P_t; // Covariance matrix for x
 	Eigen::MatrixXd G;
 	Eigen::MatrixXd Cx; // Covariance mat for EKF state

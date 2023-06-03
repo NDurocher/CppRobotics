@@ -23,7 +23,7 @@ int main()
 	bool SHOW_EST_LM_POS_PLOT = false;
 
 	robot rob(0.0, 0.0, 0.0, 0.0, dt);
-	EKFSLAM slam();
+	EKFSLAM slam(dt);
 	GPS gps;
 
 	std::vector<double> Est_x;
@@ -60,9 +60,9 @@ int main()
 	{	
 		Eigen::MatrixXd Z_obs = slam.Observation(Xtrue, LM_pos);
 		
-		// TODO update rob with new robot from library
-		Xtrue = rob.Kinematics(Xtrue, U);
-		Un = gps.corrupt_input(U);
+		rob.step(U);
+		Xtrue = rob.eigen_state().block(0,0,slam.state_size,1);
+		gps.corrupt_input(U, Un);
 
 		slam.Predict(Xest, Un, Z_obs);
 		slam.Update(Xest, Un, Z_obs);

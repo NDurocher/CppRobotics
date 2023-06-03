@@ -1,12 +1,10 @@
-#include "ekf_slam.h.h"
+#include "ekf_slam.h"
 #include <iostream>
 #include <vector>
 
 using namespace std;
 
-
-// Update to inherit robot from library 
-EKFSLAM::EKFSLAM() {
+EKFSLAM::EKFSLAM(double dt) : robot{0.0, 0.0, 0.0, 0.0, dt} {
 
 		G.resize(state_size,state_size);
 
@@ -42,8 +40,8 @@ int EKFSLAM::CountLMs(Eigen::MatrixXd& Xest){
 }
 
 Eigen::MatrixXd EKFSLAM::Observation(Eigen::MatrixXd& Xtrue, Eigen::MatrixXd& LM_pos) {
-	double Nd_LM = distribution(generator);
-	double Na_LM = distribution(generator);
+	double Nd_LM = m_distribution(m_generator);
+	double Na_LM = m_distribution(m_generator);
 
 	// Z is the read measurements from range finder for LMs
 	Eigen::MatrixXd Z(0,3);
@@ -71,21 +69,16 @@ Eigen::MatrixXd EKFSLAM::Observation(Eigen::MatrixXd& Xtrue, Eigen::MatrixXd& LM
 std::vector<Eigen::MatrixXd> EKFSLAM::Motion_jacobian(Eigen::MatrixXd X, Eigen::MatrixXd U) {
 	// count number of LMs
 	int num_LM = CountLMs(X);
-	// int num_LM = 0;
 	
 	Eigen::MatrixXd I = Eigen::MatrixXd::Identity(state_size, state_size);
 	Eigen::MatrixXd matlm = Eigen::MatrixXd::Zero(state_size, num_LM*LM_size);
 	Eigen::MatrixXd Fx(state_size, state_size + num_LM*LM_size);
 	Fx << I, matlm;
-
-	// cout << "Here?" << "\n";
 	
 	Eigen::MatrixXd J_f(state_size,state_size), G(state_size,state_size);
-	J_f << 0,0,-U(0,0)*sin(X(2,0))*dt,
-		   0,0,U(0,0)*cos(X(2,0))*dt,
+	J_f << 0,0,-U(0,0)*sin(X(2,0))*timestep(),
+		   0,0,U(0,0)*cos(X(2,0))*timestep(),
 		   0,0,0;
-
-	// cout << "Here!!" << "\n";
 
     G = Eigen::MatrixXd::Identity(state_size, state_size) + Fx.transpose() * J_f * Fx;
     std::vector<Eigen::MatrixXd> ret_vec;
@@ -100,19 +93,13 @@ void EKFSLAM::Predict(Eigen::MatrixXd& Xest, Eigen::MatrixXd& U, Eigen::MatrixXd
 	std::vector<Eigen::MatrixXd> G_fx = Motion_jacobian(Xest.block(0,0,state_size,1), U);
 	Eigen::MatrixXd Fx = G_fx.back(); 
 
-	Xest.block(0,0,state_size,1) = robot::Kinematics(Xest.block(0,0,state_size,1),U);
+	step(U);
+	Xest.block(0,0,state_size,1) = eigen_state().block(0,0,state_size,1);
+	
 	P_t.block(0,0,state_size,state_size) = G*P_t.block(0,0,state_size,state_size)*G.transpose() + Fx.transpose() * Cx * Fx;
-
-	// Unnessecary but what ever
-	// position_x = Xest(0,0);
-	// position_y = Xest(1,0);
-	// heading = Xest(2,0);
-	// velocity = X_pred(3,0);
-
-	// return Xest;
 }
 
-void ::Update(Eigen::MatrixXd& Xest, Eigen::MatrixXd& U, Eigen::MatrixXd& z_obs){
+void EKFSLAM::Update(Eigen::MatrixXd& Xest, Eigen::MatrixXd& U, Eigen::MatrixXd& z_obs){
 	Eigen::MatrixXd P_init = Eigen::MatrixXd::Identity(LM_size, LM_size);	
 	
 	// Determind which landmarks are being referenced, are they new?
@@ -154,7 +141,7 @@ void ::Update(Eigen::MatrixXd& Xest, Eigen::MatrixXd& U, Eigen::MatrixXd& z_obs)
 	Xest(2,0) = pi2pi(Xest(2,0));
 }
 
-Eigen::MatrixXd ::Calc_LM_pos(Eigen::MatrixXd& xest, Eigen::MatrixXd zi){
+Eigen::MatrixXd EKFSLAM::Calc_LM_pos(Eigen::MatrixXd& xest, Eigen::MatrixXd zi){
 	
 	Eigen::MatrixXd zp(LM_size, 1);
 	zp << xest(0,0) + zi(0,0) * cos(-(xest(2,0) + zi(0,1))),
@@ -163,7 +150,7 @@ Eigen::MatrixXd ::Calc_LM_pos(Eigen::MatrixXd& xest, Eigen::MatrixXd zi){
 	return zp;
 }
 
-std::vector<Eigen::MatrixXd> ::Innovation(Eigen::MatrixXd& est_lm_pos, Eigen::MatrixXd& xest, Eigen::MatrixXd zi_obs, int idx){
+std::vector<Eigen::MatrixXd> EKFSLAM::Innovation(Eigen::MatrixXd& est_lm_pos, Eigen::MatrixXd& xest, Eigen::MatrixXd zi_obs, int idx){
 
 	Eigen::MatrixXd delta(2,1), zp(1,2);
 
@@ -189,7 +176,7 @@ std::vector<Eigen::MatrixXd> ::Innovation(Eigen::MatrixXd& est_lm_pos, Eigen::Ma
 	return y_s_H;
 }
 
-Eigen::MatrixXd ::get_lm_pos_from_state(Eigen::MatrixXd Xest, int i){
+Eigen::MatrixXd EKFSLAM::get_lm_pos_from_state(Eigen::MatrixXd Xest, int i){
 	
 	Eigen::MatrixXd lm(2,1);
 
@@ -198,7 +185,7 @@ Eigen::MatrixXd ::get_lm_pos_from_state(Eigen::MatrixXd Xest, int i){
 	return lm;
 }
 
-int ::search_lm_id(Eigen::MatrixXd zi_obs, Eigen::MatrixXd& xest){
+int EKFSLAM::search_lm_id(Eigen::MatrixXd zi_obs, Eigen::MatrixXd& xest){
 
 	int num_LM = CountLMs(xest);
 	std::vector<double> mdist;
@@ -223,7 +210,7 @@ int ::search_lm_id(Eigen::MatrixXd zi_obs, Eigen::MatrixXd& xest){
 	return minid;
 }
 
-Eigen::MatrixXd ::H_jacob(double q, Eigen::MatrixXd& delta, Eigen::MatrixXd& xest, int i){
+Eigen::MatrixXd EKFSLAM::H_jacob(double q, Eigen::MatrixXd& delta, Eigen::MatrixXd& xest, int i){
 	double root_q = sqrt(q);
 	Eigen::MatrixXd G_H(2,5);
 	
