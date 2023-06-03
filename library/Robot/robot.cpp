@@ -1,6 +1,7 @@
 #include "robot.h"
 #include <Eigen/Dense>
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 
@@ -32,33 +33,48 @@ int robot::state_size() const {
 }
 
 void robot::step(Eigen::MatrixXd& U){
-	Eigen::MatrixXd F(4,4), B(4,2), X(4,4);
+	Eigen::MatrixXd F(4,4), B(4,2), X(4,1);
 	F << 1,0,0,0,
 		 0,1,0,0,
 		 0,0,1,0,
 		 0,0,0,0;
 
+	X = eigen_state();
+
 	B << cos(X(2,0))*m_timestep,0,
 		 sin(X(2,0))*m_timestep,0,
 		 0,m_timestep,
 		 1,0;
-
-	X << m_position_x,0,0,0,
-		 0,m_position_y,0,0,
-		 0,0,m_yaw,0,0,
-		 0,0,0,m_velocity;
+	
 
 	X = F*X + B*U;
 
-	m_position_x = X(1,1);
-	m_position_y = X(2,2);
-	m_yaw = X(3,3);
-	m_velocity = X(4,4);
+	m_position_x = X(0,0);
+	m_position_y = X(1,0);
+	m_yaw = X(2,0);
+	m_velocity = X(3,0);
+}
+
+Eigen::MatrixXd robot::eigen_state() {
+	Eigen::MatrixXd state(4,1);
+	state << m_position_x,
+			 m_position_y,
+			 m_yaw,
+			 m_velocity;
+
+	return state;
+}
+
+void robot::set_state(Eigen::MatrixXd& state_est) {
+	m_position_x = state_est(0,0);
+	m_position_y = state_est(1,0);
+	m_yaw = state_est(2,0);
+	m_velocity = state_est(3,0);
 }
 
 ///////////////////////////////
 
-Eigen::MatrixXd GPS::sample(robot r){
+Eigen::MatrixXd GPS::sample(robot& r){
 	
 	// Function to get noisy GPS sample in a Matrix
 	double Nx = m_distribution(m_generator);

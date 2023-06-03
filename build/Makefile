@@ -117,6 +117,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named EKFSLAM
+
+# Build rule for target.
+EKFSLAM: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 EKFSLAM
+.PHONY : EKFSLAM
+
+# fast build rule for target.
+EKFSLAM/fast:
+	$(MAKE) $(MAKESILENT) -f EKFSLAM/CMakeFiles/EKFSLAM.dir/build.make EKFSLAM/CMakeFiles/EKFSLAM.dir/build
+.PHONY : EKFSLAM/fast
+
+#=============================================================================
 # Target rules for targets named GPS_EKF
 
 # Build rule for target.
@@ -164,6 +177,7 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... BayesEstimator"
+	@echo "... EKFSLAM"
 	@echo "... GPS_EKF"
 	@echo "... robot"
 .PHONY : help

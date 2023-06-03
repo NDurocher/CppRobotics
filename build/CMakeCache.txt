@@ -249,6 +249,15 @@ CppRobotics_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 CppRobotics_SOURCE_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics
 
+//Value Computed by CMake
+EKFSLAM_BINARY_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics/build/EKFSLAM
+
+//Value Computed by CMake
+EKFSLAM_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+EKFSLAM_SOURCE_DIR:STATIC=/Users/NathanDurocher/cppyourself/CppRobotics/EKFSLAM
+
 //The directory containing a CMake configuration file for Eigen3.
 Eigen3_DIR:PATH=/usr/local/share/eigen3/cmake
 
@@ -508,7 +517,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=5
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=6
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

@@ -16,6 +16,8 @@ public:
 	double timestep() const;
 	int state_size() const;
 	void step(Eigen::MatrixXd& U);	
+	Eigen::MatrixXd eigen_state();
+	void set_state(Eigen::MatrixXd& state_est);	
 
 private:
   	double m_position_x{0};
@@ -30,7 +32,7 @@ private:
 
 class GPS{
 public: 
-	Eigen::MatrixXd sample(robot r);
+	Eigen::MatrixXd sample(robot& r);
 	void corrupt_input(Eigen::MatrixXd& U, Eigen::MatrixXd& Un); 	
 
 private:

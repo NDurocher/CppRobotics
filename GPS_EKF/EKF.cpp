@@ -1,9 +1,10 @@
 #include "EKF.h"
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 
-EKF::EKF(robot robot) : m_robot{robot} {
+EKF::EKF(double dt) : robot{0.0, 0.0, 0.0, 0.0, dt} {
 
 	J_g.resize(2,4);
 	J_g << 1,0,0,0,
@@ -33,13 +34,13 @@ EKF::EKF(robot robot) : m_robot{robot} {
 void EKF::predict_update(Eigen::MatrixXd& Xest, Eigen::MatrixXd& U, Eigen::MatrixXd& z) {
 	Eigen::MatrixXd J_f(4,4);
 
-	J_f << 1,0,-U(0,0)*sin(Xest(2,0))*m_robot.timestep(),cos(Xest(2,0))*m_robot.timestep(),
-		   0,1,U(0,0)*cos(Xest(2,0))*m_robot.timestep(),sin(Xest(2,0))*m_robot.timestep(),
+	J_f << 1,0,-U(0,0)*sin(Xest(2,0))*timestep(),cos(Xest(2,0))*timestep(),
+		   0,1,U(0,0)*cos(Xest(2,0))*timestep(),sin(Xest(2,0))*timestep(),
 		   0,0,1,0,
 		   0,0,0,1;
 	
-	m_robot.step(U);
-	// ****** Have to re-arcitect because I changed up how robot is implemented"
+	step(U);
+	Xest = eigen_state();
 
 
 	Eigen::MatrixXd P_pred = J_f*P_t*J_f.transpose() + Q;
@@ -58,6 +59,7 @@ void EKF::predict_update(Eigen::MatrixXd& Xest, Eigen::MatrixXd& U, Eigen::Matri
 	Eigen::MatrixXd K = P_pred*J_g.transpose()*S.inverse();
 
 	Xest = Xest + K*y;
+	set_state(Xest);
 
 	P_t = (Eigen::Matrix<double, 4, 4>::Identity()-K*J_g)*P_pred;
 }

@@ -10,7 +10,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE__CXX_FLAGS} -std=c++20")
 
 
 # executables
-#add_subdirectory(EKFSLAM)
+add_subdirectory(EKFSLAM)
 add_subdirectory(GPS_EKF)
 #add_subdirectory(RRT)
 #add_subdirectory(Visual_Odometry)

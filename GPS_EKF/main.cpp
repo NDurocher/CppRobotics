@@ -21,7 +21,7 @@ int main() {
 	double dt = 0.1;
 	robot rob(0.0, 0.0, 0.0, 0.0, dt);
 	GPS gps;
-	EKF ekf(rob);
+	EKF ekf(dt);
 
 	std::vector<double> Est_x;
 	std::vector<double> Est_y;
@@ -34,6 +34,7 @@ int main() {
 	
 	Eigen::MatrixXd U(2,1), Un(2,1), z(2,1);
 	Eigen::MatrixXd Xest = Eigen::MatrixXd::Zero(rob.state_size(),1);
+	Eigen::MatrixXd Xtrue = Eigen::MatrixXd::Zero(rob.state_size(),1);
 	Eigen::MatrixXd XestPrev = Eigen::MatrixXd::Zero(rob.state_size(),1); 
 	Eigen::MatrixXd Pprev = Eigen::MatrixXd::Identity(4,4);
 
@@ -46,6 +47,8 @@ int main() {
 			U(1,0) = 0.5;
 		}
 		rob.step(U);
+
+		Xtrue = rob.eigen_state();
 
 		gps.corrupt_input(U, Un);
 		z = gps.sample(rob);

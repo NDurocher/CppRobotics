@@ -30,7 +30,7 @@ add_executable(${PROJECT_NAME}
 				include/EKF.h
 ) 
 
-target_link_libraries (${PROJECT_NAME} PUBLIC
+target_link_libraries(${PROJECT_NAME} PUBLIC
 						Eigen3::Eigen
 						${Boost_LIBRARIES}
 						${Gnuplot_LIBRARIES}

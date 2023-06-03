@@ -39,6 +39,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("/Users/NathanDurocher/cppyourself/CppRobotics/build/EKFSLAM/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("/Users/NathanDurocher/cppyourself/CppRobotics/build/GPS_EKF/cmake_install.cmake")
 endif()
 

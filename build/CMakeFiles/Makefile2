@@ -63,19 +63,37 @@ CMAKE_BINARY_DIR = /Users/NathanDurocher/cppyourself/CppRobotics/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
+all: EKFSLAM/all
 all: GPS_EKF/all
 all: library/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
+preinstall: EKFSLAM/preinstall
 preinstall: GPS_EKF/preinstall
 preinstall: library/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
+clean: EKFSLAM/clean
 clean: GPS_EKF/clean
 clean: library/clean
 .PHONY : clean
+
+#=============================================================================
+# Directory level rules for directory EKFSLAM
+
+# Recursive "all" directory target.
+EKFSLAM/all: EKFSLAM/CMakeFiles/EKFSLAM.dir/all
+.PHONY : EKFSLAM/all
+
+# Recursive "preinstall" directory target.
+EKFSLAM/preinstall:
+.PHONY : EKFSLAM/preinstall
+
+# Recursive "clean" directory target.
+EKFSLAM/clean: EKFSLAM/CMakeFiles/EKFSLAM.dir/clean
+.PHONY : EKFSLAM/clean
 
 #=============================================================================
 # Directory level rules for directory GPS_EKF
@@ -141,13 +159,39 @@ library/Robot/clean: library/Robot/CMakeFiles/robot.dir/clean
 .PHONY : library/Robot/clean
 
 #=============================================================================
+# Target rules for target EKFSLAM/CMakeFiles/EKFSLAM.dir
+
+# All Build rule for target.
+EKFSLAM/CMakeFiles/EKFSLAM.dir/all: library/Robot/CMakeFiles/robot.dir/all
+	$(MAKE) $(MAKESILENT) -f EKFSLAM/CMakeFiles/EKFSLAM.dir/build.make EKFSLAM/CMakeFiles/EKFSLAM.dir/depend
+	$(MAKE) $(MAKESILENT) -f EKFSLAM/CMakeFiles/EKFSLAM.dir/build.make EKFSLAM/CMakeFiles/EKFSLAM.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/NathanDurocher/cppyourself/CppRobotics/build/CMakeFiles --progress-num=3,4,5 "Built target EKFSLAM"
+.PHONY : EKFSLAM/CMakeFiles/EKFSLAM.dir/all
+
+# Build rule for subdir invocation for target.
+EKFSLAM/CMakeFiles/EKFSLAM.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/NathanDurocher/cppyourself/CppRobotics/build/CMakeFiles 5
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 EKFSLAM/CMakeFiles/EKFSLAM.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/NathanDurocher/cppyourself/CppRobotics/build/CMakeFiles 0
+.PHONY : EKFSLAM/CMakeFiles/EKFSLAM.dir/rule
+
+# Convenience name for target.
+EKFSLAM: EKFSLAM/CMakeFiles/EKFSLAM.dir/rule
+.PHONY : EKFSLAM
+
+# clean rule for target.
+EKFSLAM/CMakeFiles/EKFSLAM.dir/clean:
+	$(MAKE) $(MAKESILENT) -f EKFSLAM/CMakeFiles/EKFSLAM.dir/build.make EKFSLAM/CMakeFiles/EKFSLAM.dir/clean
+.PHONY : EKFSLAM/CMakeFiles/EKFSLAM.dir/clean
+
+#=============================================================================
 # Target rules for target GPS_EKF/CMakeFiles/GPS_EKF.dir
 
 # All Build rule for target.
 GPS_EKF/CMakeFiles/GPS_EKF.dir/all: library/Robot/CMakeFiles/robot.dir/all
 	$(MAKE) $(MAKESILENT) -f GPS_EKF/CMakeFiles/GPS_EKF.dir/build.make GPS_EKF/CMakeFiles/GPS_EKF.dir/depend
 	$(MAKE) $(MAKESILENT) -f GPS_EKF/CMakeFiles/GPS_EKF.dir/build.make GPS_EKF/CMakeFiles/GPS_EKF.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/NathanDurocher/cppyourself/CppRobotics/build/CMakeFiles --progress-num=3,4,5 "Built target GPS_EKF"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/NathanDurocher/cppyourself/CppRobotics/build/CMakeFiles --progress-num=6,7,8 "Built target GPS_EKF"
 .PHONY : GPS_EKF/CMakeFiles/GPS_EKF.dir/all
 
 # Build rule for subdir invocation for target.
@@ -173,7 +217,7 @@ GPS_EKF/CMakeFiles/GPS_EKF.dir/clean:
 library/Robot/CMakeFiles/robot.dir/all:
 	$(MAKE) $(MAKESILENT) -f library/Robot/CMakeFiles/robot.dir/build.make library/Robot/CMakeFiles/robot.dir/depend
 	$(MAKE) $(MAKESILENT) -f library/Robot/CMakeFiles/robot.dir/build.make library/Robot/CMakeFiles/robot.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/NathanDurocher/cppyourself/CppRobotics/build/CMakeFiles --progress-num=6,7 "Built target robot"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/NathanDurocher/cppyourself/CppRobotics/build/CMakeFiles --progress-num=9,10 "Built target robot"
 .PHONY : library/Robot/CMakeFiles/robot.dir/all
 
 # Build rule for subdir invocation for target.
