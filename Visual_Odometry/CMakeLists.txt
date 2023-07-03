@@ -1,9 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_BUILD_TYPE Debug)
-
-# specify the C++ standard
-set(CMAKE_CXX_FLAGS "${CMAKE__CXX_FLAGS} -std=c++17")
 
 # set the project name
 project(Visual_Odometry)
@@ -15,24 +12,25 @@ find_package(Boost 1.78 COMPONENTS ALL)
 find_package(Gnuplot 5.4 COMPONENTS ALL)
 find_package(OpenCV REQUIRED)
 
+# specify the C++ standard
+set(CMAKE_CXX_FLAGS "${CMAKE__CXX_FLAGS} -std=c++17")
 set(OpenCV_INCLUDE_DIRS /Users/NathanDurocher/opencv/include)
 
 include_directories(${EIGEN_INCLUDE_DIRS}
 					${BOOST_INCLUDE_DIRS}
-					${PARENT_DIR}/gnuplot-iostream
 					${OpenCV_INCLUDE_DIRS}
+					include/
+					library/
 )
-
-# message(${OpenCV_INCLUDE_DIRS})
 
 link_directories(${PARENT_DIR}/gnuplot-iostream
 )
 
 # add the executable
 add_executable(${PROJECT_NAME}
-				src/main.cpp
-				include/${PROJECT_NAME}/VO.h
-				include/${PROJECT_NAME}/VO.cpp
+				main.cpp
+				include/VO.h
+				VO.cpp
 ) 
 
 target_link_libraries (${PROJECT_NAME}
@@ -40,6 +38,6 @@ target_link_libraries (${PROJECT_NAME}
 						${Boost_LIBRARIES}
 						${Gnuplot_LIBRARIES}
 						${OpenCV_LIBS}
-)
+						${Gnuplot_LIBRARIES}
 
- # message(${OpenCV_LIBS})
+)

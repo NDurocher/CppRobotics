@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-# specify the C++ standard
-set(CMAKE_CXX_FLAGS "${CMAKE__CXX_FLAGS} -std=c++17")
-
 # set the project name
 project(RRT)
 
@@ -17,15 +14,16 @@ find_package (Gnuplot 5.4 COMPONENTS ALL)
 include_directories(${EIGEN_INCLUDE_DIRS}
 					${BOOST_INCLUDE_DIRS}
 					${PARENT_DIR}/gnuplot-iostream
+					include/
 )
 
 link_directories(${PARENT_DIR}/gnuplot-iostream)
 
 # add the executable
 add_executable(${PROJECT_NAME}
-				src/main.cpp
-				include/${PROJECT_NAME}/rrt.cpp
-				include/${PROJECT_NAME}/rrt.h
+				main.cpp
+				rrt.cpp
+				include/rrt.h
 ) 
 
 target_link_libraries (${PROJECT_NAME}
