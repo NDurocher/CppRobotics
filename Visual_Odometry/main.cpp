@@ -4,22 +4,27 @@
 #include <opencv2/core/eigen.hpp>
 
 #include "vo.h"
-#include "gnuplot-iostream.h"
+#include "matplotlibcpp.h"
+
+using namespace std;
+namespace plt = matplotlibcpp;
 
 int main(int argc, char** argv ) {   
 
-    Gnuplot gp;
-    Gnuplot gp2;
-    // gp << "set xrange [-10:10]\n";
     bool SHOW_PLOT = true;
-    std::string dataDir = "../data/dataset/sequences";
+    std::string dataDir = "/Users/NathanDurocher/cppyourself/CppRobotics/Visual_Odometry/data/dataset/sequences";
     std::string sequence = "03"; // # 00-21, include leading zero
-    VO vo(dataDir, sequence);
+    std::string camera_0 = "/image_0";
+    std::string camera_1 = "/image_1";
+    VO vo(dataDir, sequence, camera_0);
+    VO vo_2(dataDir, sequence, camera_1);
 
     std::vector<Eigen::MatrixXf> gt_pose;
-    std::vector<Eigen::MatrixXf> estimated_pose;
     cv::Mat current_pose, Transform;
     std::vector<cv::Point2f> q1, q2;
+
+    cv::Mat current_pose_2, Transform_2;
+    std::vector<cv::Point2f> q1_2, q2_2;
 
     std::vector<float> est_x;
     std::vector<float> est_y;
@@ -30,10 +35,11 @@ int main(int argc, char** argv ) {
 
     // vo.showvideo();
 
-    for (unsigned p=0; p < vo._poses.size(); p++){ //vo._poses.size()
+    for (unsigned p=0; p < 400; p++){ //vo._poses.size()
         std::cout << "Proccesing pose #: " << p+1 << std::endl;
         if (p == 0){
             current_pose = vo._poses[p];
+            current_pose_2 = vo_2._poses[p];
         }
         else{
             q1.clear();
@@ -45,10 +51,23 @@ int main(int argc, char** argv ) {
             cv::cv2eigen(Transform.inv(), Etrans);
             Ecp = Ecp * Etrans;
             cv::eigen2cv(Ecp, current_pose);
+
+            q1_2.clear();
+            q2_2.clear();
+            vo_2.get_matches(p, q1_2, q2_2);
+            vo_2.get_poses(q1_2,q2_2, Transform_2);
+            Ecp = Eigen::MatrixXf{};
+            Etrans = Eigen::MatrixXf{};
+            cv::cv2eigen(current_pose_2, Ecp);
+            cv::cv2eigen(Transform_2.inv(), Etrans);
+            Ecp = Ecp * Etrans;
+            cv::eigen2cv(Ecp, current_pose_2);
             
         }
-        est_x.push_back(current_pose.clone().at<float>(0,3));
-        est_y.push_back(current_pose.clone().at<float>(2,3));
+        cv::Mat avg_pose = (current_pose + current_pose_2)/2;
+
+        est_x.push_back(avg_pose.clone().at<float>(0,3));
+        est_y.push_back(avg_pose.clone().at<float>(2,3));
 
         true_x.push_back(vo._poses[p].at<float>(0,3));
         true_y.push_back(vo._poses[p].at<float>(2,3));
@@ -62,12 +81,10 @@ int main(int argc, char** argv ) {
 
     // Plot paths here:
     if (SHOW_PLOT){
-        gp << "plot" << gp.file1d(boost::make_tuple(est_x, est_y)) \
-            <<  "with lines title 'Estimated Position'," \
-            << gp.file1d(boost::make_tuple(true_x, true_y)) \
-            << "with lines title 'Ground Truth Position'\n";
-        gp2 << "plot" << gp.file1d(boost::make_tuple(framenum, error)) \
-            << "with points title 'Error'\n";
+        plt::named_plot("Estimated Position", est_x, est_y);
+        plt::named_plot("True Position", true_x, true_y);
+        plt::legend();
+        plt::show();
     }
     return 0;
 }

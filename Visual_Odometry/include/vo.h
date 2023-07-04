@@ -12,7 +12,7 @@
 class VO
 {
 public:
-	VO(std::string& dataDir, std::string& sequence);
+	VO(std::string dataDir, std::string sequence, std::string& camera);
 	 	
 	std::vector<cv::Mat> _calibs; // Contains calin for both Left and Right Camera
 	std::vector<cv::Mat> _poses; // Contains ground truth poses for camera
@@ -25,7 +25,7 @@ public:
 	cv::Mat _K; // Camera Intrinsic Parameters (3x3)
 	cv::Mat _P; // Camera Projection Matrix (3x4)
 
-	void load_images(std::string filePath, std::string& sequence);
+	void load_images(std::string filePath, std::string& sequence, std::string& camera);
 
 	void load_calib(std::string filePath, std::string& sequence);
 

@@ -16,11 +16,11 @@
 #include <Eigen/Dense>
 
 
-namespace fs = std::filesystem;
+namespace fs = std::__fs::filesystem;
 
-VO::VO(std::string& dataDir, std::string& sequence){
+VO::VO(std::string dataDir, std::string sequence, std::string& camera){
 
-	load_images(dataDir, sequence);
+	load_images(dataDir, sequence, camera);
 	std::cout << "Images Loaded" << std::endl;
 	load_poses(dataDir, sequence);
 	std::cout << "GT Poses Loaded" << std::endl;
@@ -28,12 +28,13 @@ VO::VO(std::string& dataDir, std::string& sequence){
 	std::cout << "Camera Calibs Loaded" << std::endl;
 }
 
-void VO::load_images(std::string filePath, std::string& sequence){
+void VO::load_images(std::string filePath, std::string& sequence, std::string& camera){
 	// Import left camera images (can change to image_r and check diff in output)
-	filePath.append("/" + sequence + "/image_1");
+	filePath.append("/" + sequence + camera);
 	// std::sort(files_in_directory.begin(), files_in_directory.end())
+	const fs::path fs_path{filePath};
 	std::vector<std::string> sorted_paths;
-	for (auto & f : fs::directory_iterator(filePath)){
+	for (auto & f : fs::directory_iterator(fs_path)){
 		sorted_paths.push_back(f.path());
 	}
 	std::sort(sorted_paths.begin(), sorted_paths.end());
