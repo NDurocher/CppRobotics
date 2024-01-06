@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
-project(robot)
+project(robot VERSION 0.1.0
+        DESCRIPTION "A base differential drive robot library"
+        LANGUAGES C CXX)
 
 # Set the library sources
 set(LIBRARY_SOURCES
@@ -26,12 +28,6 @@ target_link_libraries (${PROJECT_NAME} PUBLIC
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
-)
-
-# Set the library version
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    VERSION 1.0.0
-    SOVERSION 1
 )
 
 # create alias

@@ -1,7 +1,5 @@
-#include <cstdio>
 #include <iostream>
 #include <vector>
-#include <utility>
 #include <Eigen/Dense>
 #include <cmath>
 #include <ctime>
@@ -9,17 +7,18 @@
 #include "gnuplot-iostream.h"
 #include "EKF.h"
 #include "robot.h"
+#include "my_time.h"
 
 using namespace std;
 
 int main() {
 	
-	srand(time(0));
+	srand(get_time());
 	Gnuplot gp;
 	// gp << "set xrange [-10:10]\nset yrange [0:20]\n";
 	double SIM_TIME = 40;
 	double dt = 0.1;
-	robot rob(0.0, 0.0, 0.0, 0.0, dt);
+	robot rob(0.0, 0.0, 0.0, dt);
 	GPS gps;
 	EKF ekf(dt);
 
@@ -41,7 +40,7 @@ int main() {
 	 U << 1.0,
 	 	  0.1;
 
-	for (double i = 0; i < SIM_TIME; i=i+dt)
+	for (double i = 0; i < SIM_TIME; i=+dt)
 	{
 		if (i >= SIM_TIME/2){
 			U(1,0) = 0.5;

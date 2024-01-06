@@ -19,7 +19,7 @@ int main() {
     bool SHOW_PLOT = true;
     bool SHOW_EST_LM_POS_PLOT = false;
 
-    robot rob(0.0, 0.0, 0.0, 0.0, dt);
+    robot rob(0.0, 0.0, 0.0, dt);
     SlamVariables slam_vars;
     SimVariables sim_vars;
     GPS gps;
