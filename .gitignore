@@ -2,3 +2,5 @@
 Visual_Odometry/data/**
 build/**
 build
+cmake-build**
+**.vscode**
