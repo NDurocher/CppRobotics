@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/eigen.hpp>
@@ -9,7 +8,7 @@
 using namespace std;
 namespace plt = matplotlibcpp;
 
-int main(int argc, char** argv ) {   
+int main() {
 
     bool SHOW_PLOT = true;
     std::string dataDir = "/Users/NathanDurocher/cppyourself/CppRobotics/Visual_Odometry/data/dataset/sequences";
@@ -35,17 +34,16 @@ int main(int argc, char** argv ) {
 
     // vo.showvideo();
 
-    for (unsigned p=0; p < 400; p++){ //vo._poses.size()
-        std::cout << "Proccesing pose #: " << p+1 << std::endl;
-        if (p == 0){
+    for (unsigned p = 0; p < 400; p++) { //vo._poses.size()
+        std::cout << "Proccesing pose #: " << p + 1 << std::endl;
+        if (p == 0) {
             current_pose = vo._poses[p];
             current_pose_2 = vo_2._poses[p];
-        }
-        else{
+        } else {
             q1.clear();
             q2.clear();
             vo.get_matches(p, q1, q2);
-            vo.get_poses(q1,q2, Transform);
+            vo.get_poses(q1, q2, Transform);
             Eigen::MatrixXf Ecp, Etrans;
             cv::cv2eigen(current_pose, Ecp);
             cv::cv2eigen(Transform.inv(), Etrans);
@@ -55,24 +53,24 @@ int main(int argc, char** argv ) {
             q1_2.clear();
             q2_2.clear();
             vo_2.get_matches(p, q1_2, q2_2);
-            vo_2.get_poses(q1_2,q2_2, Transform_2);
+            vo_2.get_poses(q1_2, q2_2, Transform_2);
             Ecp = Eigen::MatrixXf{};
             Etrans = Eigen::MatrixXf{};
             cv::cv2eigen(current_pose_2, Ecp);
             cv::cv2eigen(Transform_2.inv(), Etrans);
             Ecp = Ecp * Etrans;
             cv::eigen2cv(Ecp, current_pose_2);
-            
+
         }
-        cv::Mat avg_pose = (current_pose + current_pose_2)/2;
+        cv::Mat avg_pose = (current_pose + current_pose_2) / 2;
 
-        est_x.push_back(avg_pose.clone().at<float>(0,3));
-        est_y.push_back(avg_pose.clone().at<float>(2,3));
+        est_x.push_back(avg_pose.clone().at<float>(0, 3));
+        est_y.push_back(avg_pose.clone().at<float>(2, 3));
 
-        true_x.push_back(vo._poses[p].at<float>(0,3));
-        true_y.push_back(vo._poses[p].at<float>(2,3));
+        true_x.push_back(vo._poses[p].at<float>(0, 3));
+        true_y.push_back(vo._poses[p].at<float>(2, 3));
 
-        float E = sqrt(pow(est_x[p]-true_x[p],2)+pow(est_y[p]-true_y[p],2));
+        float E = sqrt(pow(est_x[p] - true_x[p], 2) + pow(est_y[p] - true_y[p], 2));
         error.push_back(E);
         framenum.push_back(p);
 
@@ -80,7 +78,7 @@ int main(int argc, char** argv ) {
 
 
     // Plot paths here:
-    if (SHOW_PLOT){
+    if (SHOW_PLOT) {
         plt::named_plot("Estimated Position", est_x, est_y);
         plt::named_plot("True Position", true_x, true_y);
         plt::legend();

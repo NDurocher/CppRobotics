@@ -4,61 +4,65 @@
 
 namespace rrt {
 
-class Node {
-public:
-	Node(float x, float y);
-	Node(float x, float y, Node* parent_node);
+    class Node {
+    public:
+        Node(float x, float y);
 
-	std::vector<float> get_path_x();
-	std::vector<float> get_path_y();
+        Node(float x, float y, Node *parent_node);
 
-	float x();
-	float y();
+        std::vector<float> get_path_x();
 
-private:
-	float m_pos_x{0};
-	float m_pos_y{0};
-	std::vector<float> m_path_x{};
-	std::vector<float> m_path_y{};
-	Node* m_parent{nullptr};
-};
+        std::vector<float> get_path_y();
+
+        float x();
+
+        float y();
+
+    private:
+        float m_pos_x{0};
+        float m_pos_y{0};
+        std::vector<float> m_path_x{};
+        std::vector<float> m_path_y{};
+        Node *m_parent{nullptr};
+    };
 
 
-class AreaBoundry {
-public: 
-	AreaBoundry(float x_min, float x_max, float y_min, float y_max);
+    class AreaBoundry {
+    public:
+        AreaBoundry(float x_min, float x_max, float y_min, float y_max);
 
-	std::vector<float> get_x_bounds();
-	std::vector<float> get_y_bounds();
+        std::vector<float> get_x_bounds();
 
-private:
-	float m_x_min{0};
-	float m_x_max{0};
-	float m_y_min{0};
-	float m_y_max{0};
-};
+        std::vector<float> get_y_bounds();
 
-class RRT {
-	// Base Class for RRT path planning
-public:
-	RRT(float start_x, float start_y, float finish_x, float finish_y, float epsilon);
+    private:
+        float m_x_min{0};
+        float m_x_max{0};
+        float m_y_min{0};
+        float m_y_max{0};
+    };
 
-	void check_new_point(AreaBoundry bounds);
+    class RRT {
+        // Base Class for RRT path planning
+    public:
+        RRT(float start_x, float start_y, float finish_x, float finish_y, float epsilon);
 
-	int find_closest_node_index(Node& sample_node);
+        void check_new_point(AreaBoundry bounds);
 
-	float distance_between_nodes(Node& n1, Node& n2);
+        int find_closest_node_index(Node &sample_node);
 
-	void make_new_node(Node& sample_node, Node& closest_node);
+        float distance_between_nodes(Node &n1, Node &n2);
 
-	bool check_done();
+        void make_new_node(Node &sample_node, Node &closest_node);
 
-	Node get_last_node();
+        bool check_done();
 
-private:
-	std::vector<Node> m_node_list;
-	Node m_finish_node;
-	float m_epsilon;
-};
+        Node get_last_node();
+
+    private:
+        std::vector<Node> m_node_list;
+        Node m_finish_node;
+        float m_epsilon;
+    };
 
 } // namespace rrt

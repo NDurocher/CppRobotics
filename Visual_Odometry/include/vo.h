@@ -9,39 +9,39 @@
 #include <opencv2/calib3d.hpp>
 #include <Eigen/Dense>
 
-class VO
-{
+class VO {
 public:
-	VO(std::string dataDir, std::string sequence, std::string& camera);
-	 	
-	std::vector<cv::Mat> _calibs; // Contains calin for both Left and Right Camera
-	std::vector<cv::Mat> _poses; // Contains ground truth poses for camera
-	std::vector<std::string> _strPoses;
-	std::vector<cv::Mat> _images;
-	// cv::Ptr<cv::xfeatures2d::SURF> _orb = cv::xfeatures2d::SURF::create(400, 4, 2, true, false);
-	cv::Ptr<cv::FeatureDetector> _orb = cv::ORB::create(3000);
-	cv::Ptr<cv::DescriptorMatcher> _flann = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
+    VO(const std::string &dataDir, std::string sequence, std::string &camera);
 
-	cv::Mat _K; // Camera Intrinsic Parameters (3x3)
-	cv::Mat _P; // Camera Projection Matrix (3x4)
+    std::vector<cv::Mat> _calibs; // Contains calin for both Left and Right Camera
+    std::vector<cv::Mat> _poses; // Contains ground truth poses for camera
+    std::vector<std::string> _strPoses;
+    std::vector<cv::Mat> _images;
+    // cv::Ptr<cv::xfeatures2d::SURF> _orb = cv::xfeatures2d::SURF::create(400, 4, 2, true, false);
+    cv::Ptr<cv::FeatureDetector> _orb = cv::ORB::create(3000);
+    cv::Ptr<cv::DescriptorMatcher> _flann = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
 
-	void load_images(std::string filePath, std::string& sequence, std::string& camera);
+    cv::Mat _K; // Camera Intrinsic Parameters (3x3)
+    cv::Mat _P; // Camera Projection Matrix (3x4)
 
-	void load_calib(std::string filePath, std::string& sequence);
+    void load_images(std::string filePath, std::string &sequence, std::string &camera);
 
-	void load_poses(std::string filePath, std::string& sequence);
+    void load_calib(std::string filePath, std::string &sequence);
 
-	void get_matches(unsigned& i, std::vector<cv::Point2f>& q1, std::vector<cv::Point2f>& q2);
+    void load_poses(std::string filePath, std::string &sequence);
 
-	void get_poses(std::vector<cv::Point2f>& q1, std::vector<cv::Point2f>& q2, cv::Mat& Trans_Mat);
+    void get_matches(unsigned &i, std::vector<cv::Point2f> &q1, std::vector<cv::Point2f> &q2);
 
-	void decomp_essential_mat(cv::Mat& Emat, cv::Mat& R, cv::Mat& t, std::vector<cv::Point2f>& q1, std::vector<cv::Point2f>& q2);
+    void get_poses(std::vector<cv::Point2f> &q1, std::vector<cv::Point2f> &q2, cv::Mat &Trans_Mat);
 
-	void get_relativeScale(Eigen::MatrixXf& HQ1, Eigen::MatrixXf& HQ2, std::vector<float>& relative_scale);
+    void decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point2f> &q1,
+                              std::vector<cv::Point2f> &q2);
 
-	void formTransformMat(cv::Mat& R, cv::Mat& t, cv::Mat& T);
+    static void get_relativeScale(Eigen::MatrixXf &HQ1, Eigen::MatrixXf &HQ2, std::vector<float> &relative_scale);
 
-	static void stringLine2Matrix(cv::Mat& tempMat, int& rows, int& cols, std::string& line);
+    static void formTransformMat(cv::Mat &R, cv::Mat &t, cv::Mat &T);
 
-	void showvideo();
+    static void stringLine2Matrix(cv::Mat &tempMat, int &rows, int &cols, std::string &line);
+
+    void showvideo();
 };
