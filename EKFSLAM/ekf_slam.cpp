@@ -5,16 +5,16 @@
 
 
 int CountLMs(Eigen::MatrixXd &Xest, const SimVariables &sim_vars) {
-    double con = (Xest.rows() - sim_vars.state_size) / 2;
+    double con = (static_cast<int>(Xest.rows()) - sim_vars.state_size) / 2;
     return con > 0 ? int(con) : 0;
 }
 
-Eigen::MatrixXd Observation(robot rob, Eigen::MatrixXd &U, Eigen::MatrixXd &Xtrue, Eigen::MatrixXd &LM_pos,
+Eigen::MatrixXd Observation(Eigen::MatrixXd &U, Eigen::MatrixXd &Xtrue, Eigen::MatrixXd &LM_pos,
                             const SlamVariables &slam_vars, const SimVariables &sim_vars) {
-    Xtrue = rob.motion_model(Xtrue, U);
+    Xtrue = diff_drive::motion_model(Xtrue, U, sim_vars.dt);
 
-    default_random_engine m_generator{static_cast<unsigned int>(get_time())};
-    normal_distribution<double> m_distribution{0.0, 1.0};
+    std::default_random_engine m_generator{static_cast<unsigned int>(get_time())};
+    std::normal_distribution<double> m_distribution{0.0, 1.0};
 
     double Nd_LM = m_distribution(m_generator);
     double Na_LM = m_distribution(m_generator);
@@ -30,7 +30,7 @@ Eigen::MatrixXd Observation(robot rob, Eigen::MatrixXd &U, Eigen::MatrixXd &Xtru
         double angle = pi2pi(atan2(dy, dx) - Xtrue(2, 0));
 
         if (distance <= slam_vars.MAX_RANGE) {
-            int s = Z.rows() + 1;
+            int s = static_cast<int>(Z.rows()) + 1;
             Z.conservativeResize(s, sim_vars.state_size);
             Z(s - 1, 0) = distance + Nd_LM * slam_vars.Q(0, 0);
             Z(s - 1, 1) = angle + Na_LM * slam_vars.Q(1, 1);
@@ -64,18 +64,18 @@ std::vector<Eigen::MatrixXd> Motion_jacobian(Eigen::MatrixXd X, Eigen::MatrixXd 
 }
 
 void
-Predict(robot rob, Eigen::MatrixXd &Xest, Eigen::MatrixXd &U, SlamVariables &slam_vars, const SimVariables &sim_vars) {
+Predict(Eigen::MatrixXd &Xest, Eigen::MatrixXd &U, SlamVariables &slam_vars, const SimVariables &sim_vars) {
     std::vector<Eigen::MatrixXd> G_fx = Motion_jacobian(Xest.block(0, 0, sim_vars.state_size, 1), U, sim_vars);
     Eigen::MatrixXd Fx = G_fx.back();
     slam_vars.G = G_fx.front();
     Eigen::MatrixXd block_Xest = Xest.block(0, 0, 3, 1);
-    Xest.block(0, 0, 3, 1) = rob.motion_model(block_Xest, U);
+    Xest.block(0, 0, 3, 1) = diff_drive::motion_model(block_Xest, U, sim_vars.dt);
     slam_vars.P_t.block(0, 0, sim_vars.state_size, sim_vars.state_size) =
             slam_vars.G * slam_vars.P_t.block(0, 0, sim_vars.state_size, sim_vars.state_size) *
             slam_vars.G.transpose() + Fx.transpose() * slam_vars.Cx * Fx;
 }
 
-void Update(Eigen::MatrixXd &Xest, Eigen::MatrixXd &U, Eigen::MatrixXd &z_obs, SlamVariables &slam_vars,
+void Update(Eigen::MatrixXd &Xest, Eigen::MatrixXd &z_obs, SlamVariables &slam_vars,
             const SimVariables &sim_vars) {
     Eigen::MatrixXd P_init = Eigen::MatrixXd::Identity(sim_vars.LM_size, sim_vars.LM_size);
 
@@ -86,7 +86,7 @@ void Update(Eigen::MatrixXd &Xest, Eigen::MatrixXd &U, Eigen::MatrixXd &z_obs, S
         int nLM = CountLMs(Xest, sim_vars);
 
         if (minid == nLM) {
-            cout << "New LM!" << endl;
+            std::cout << "New LM!" << std::endl;
             // Extend state and covariance matrix
             Eigen::MatrixXd xAug(Xest.rows() + sim_vars.LM_size, Xest.cols());
             Eigen::MatrixXd lm_pos = Calc_LM_pos(Xest, z_obs.block(ii, 0, 1, sim_vars.state_size), sim_vars);
@@ -166,7 +166,8 @@ Eigen::MatrixXd get_lm_pos_from_state(Eigen::MatrixXd Xest, int i, const SimVari
 }
 
 int
-search_lm_id(Eigen::MatrixXd zi_obs, Eigen::MatrixXd &xest, SlamVariables &slam_vars, const SimVariables &sim_vars) {
+search_lm_id(const Eigen::MatrixXd &zi_obs, Eigen::MatrixXd &xest, SlamVariables &slam_vars,
+             const SimVariables &sim_vars) {
 
     int num_LM = CountLMs(xest, sim_vars);
     std::vector<double> mdist;

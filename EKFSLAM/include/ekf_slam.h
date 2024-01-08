@@ -36,15 +36,15 @@ double pi2pi(double angle);
 
 int CountLMs(Eigen::MatrixXd &Xest, const SimVariables &sim_vars);
 
-Eigen::MatrixXd Observation(robot rob, Eigen::MatrixXd &U, Eigen::MatrixXd &Xtrue, Eigen::MatrixXd &LM_pos,
+Eigen::MatrixXd Observation(Eigen::MatrixXd &U, Eigen::MatrixXd &Xtrue, Eigen::MatrixXd &LM_pos,
                             const SlamVariables &slam_vars, const SimVariables &sim_vars);
 
 std::vector<Eigen::MatrixXd> Motion_jacobian(Eigen::MatrixXd X, Eigen::MatrixXd U, const SimVariables &sim_vars);
 
 void
-Predict(robot rob, Eigen::MatrixXd &Xest, Eigen::MatrixXd &U, SlamVariables &slam_vars, const SimVariables &sim_vars);
+Predict(Eigen::MatrixXd &Xest, Eigen::MatrixXd &U, SlamVariables &slam_vars, const SimVariables &sim_vars);
 
-void Update(Eigen::MatrixXd &Xest, Eigen::MatrixXd &U, Eigen::MatrixXd &z_obs, SlamVariables &slam_vars,
+void Update(Eigen::MatrixXd &Xest, Eigen::MatrixXd &z_obs, SlamVariables &slam_vars,
             const SimVariables &sim_vars);
 
 Eigen::MatrixXd Calc_LM_pos(Eigen::MatrixXd &xest, Eigen::MatrixXd zi, const SimVariables &sim_vars);
@@ -55,7 +55,8 @@ Innovation(Eigen::MatrixXd &est_lm_pos, Eigen::MatrixXd &xest, Eigen::MatrixXd z
 
 Eigen::MatrixXd get_lm_pos_from_state(Eigen::MatrixXd Xest, int i, const SimVariables &sim_vars);
 
-int search_lm_id(Eigen::MatrixXd zi_obs, Eigen::MatrixXd &xest, SlamVariables &slam_vars, const SimVariables &sim_vars);
+int search_lm_id(const Eigen::MatrixXd &zi_obs, Eigen::MatrixXd &xest, SlamVariables &slam_vars,
+                 const SimVariables &sim_vars);
 
 Eigen::MatrixXd H_jacob(double q, Eigen::MatrixXd &delta, Eigen::MatrixXd &xest, int i, const SimVariables &sim_vars);
 

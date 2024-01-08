@@ -15,14 +15,13 @@ int main() {
     gp << "set xrange [-15:15]\nset yrange [-5:25]\n";
     gp2 << "set xrange [-15:15]\nset yrange [-5:25]\n";
     double SIM_TIME = 61.;
-    double dt = 0.1;
+    double velocity_variance{1.};
+    double heading_variance{0.174533};
     bool SHOW_PLOT = true;
     bool SHOW_EST_LM_POS_PLOT = false;
 
-    robot rob(0.0, 0.0, 0.0, dt);
     SlamVariables slam_vars;
     SimVariables sim_vars;
-    GPS gps;
 
     std::vector<double> Est_x;
     std::vector<double> Est_y;
@@ -54,13 +53,14 @@ int main() {
         LM_pos_vec_y.push_back(LM_pos(i, 1));
     }
 
-    for (double i = 0; i < SIM_TIME; i += dt) {
+    double time = 0.;
+    while (time < SIM_TIME) {
 
-        Eigen::MatrixXd Z_obs = Observation(rob, U, Xtrue, LM_pos, slam_vars, sim_vars);
-        gps.corrupt_input(U, Un);
+        Eigen::MatrixXd Z_obs = Observation(U, Xtrue, LM_pos, slam_vars, sim_vars);
+        Un = diff_drive::corrupt_input(U, velocity_variance, heading_variance);
 
-        Predict(rob, Xest, Un, Z_obs, slam_vars, sim_vars);
-        Update(Xest, Un, Z_obs, slam_vars, sim_vars);
+        Predict(Xest, Un, slam_vars, sim_vars);
+        Update(Xest, Z_obs, slam_vars, sim_vars);
 
         Est_x.push_back(Xest(0, 0));
         Est_y.push_back(Xest(1, 0));
@@ -88,6 +88,7 @@ int main() {
             }
         }
 
+        time += sim_vars.dt;
     }
 
     return 0;
