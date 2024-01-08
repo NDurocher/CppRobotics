@@ -34,6 +34,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 						Eigen3::Eigen
 						${Boost_LIBRARIES}
 						${Gnuplot_LIBRARIES}
-						CppRob::robot
 						CppRob::utils
 )
