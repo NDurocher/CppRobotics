@@ -4,23 +4,25 @@
 
 using namespace std;
 
-EKF::EKF(double dt) : robot{0.0, 0.0, 0.0, dt} {
+EKF::EKF() {
 
-    J_g.resize(2, 3);
-    J_g << 1, 0, 0,
-            0, 1, 0;
+    J_g.resize(2, 4);
+    J_g << 1, 0, 0, 0,
+            0, 1, 0, 0;
 
     /* Covariance matrix for x */
-    P_t.resize(3, 3);
-    P_t << 1, 0, 0,
-            0, 1, 0,
-            0, 0, 1;
+    P_t.resize(4, 4);
+    P_t << 1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1;
 
     /* Covariance mat for process noise */
-    Q.resize(3, 3);
-    Q << 0.1, 0, 0,
-            0, 0.1, 0,
-            0, 0, 1 * M_PI / 180.0;
+    Q.resize(4, 4);
+    Q << 0.1, 0, 0, 0,
+            0, 0.1, 0, 0,
+            0, 0, 1 * M_PI / 180.0, 0,
+            0, 0, 0, 1;
     Q = Q * Q.transpose();
 
     /* Covariance mat of observation noise */
@@ -29,20 +31,17 @@ EKF::EKF(double dt) : robot{0.0, 0.0, 0.0, dt} {
             0, 1;
 }
 
-void EKF::predict_update(Eigen::MatrixXd &Xest, Eigen::MatrixXd &U, Eigen::MatrixXd &z) {
+void EKF::predict_update(Eigen::MatrixXd &Xest, Eigen::MatrixXd &U, Eigen::MatrixXd &z, double timestep) {
     Eigen::MatrixXd J_f(4, 4);
 
-    J_f << 1, 0, -U(0, 0) * sin(Xest(2, 0)) * timestep(), cos(Xest(2, 0)) * timestep(),
-            0, 1, U(0, 0) * cos(Xest(2, 0)) * timestep(), sin(Xest(2, 0)) * timestep(),
+    J_f << 1, 0, -U(0, 0) * sin(Xest(2, 0)) * timestep, cos(Xest(2, 0)) * timestep,
+            0, 1, U(0, 0) * cos(Xest(2, 0)) * timestep, sin(Xest(2, 0)) * timestep,
             0, 0, 1, 0,
             0, 0, 0, 1;
 
-    step(U);
-    Xest = eigen_state();
-
+    Xest = diff_drive::motion_model(Xest, U, timestep);
 
     Eigen::MatrixXd P_pred = J_f * P_t * J_f.transpose() + Q;
-
 
     Eigen::MatrixXd H(2, 4);
     H << 1, 0, 0, 0,
@@ -57,7 +56,6 @@ void EKF::predict_update(Eigen::MatrixXd &Xest, Eigen::MatrixXd &U, Eigen::Matri
     Eigen::MatrixXd K = P_pred * J_g.transpose() * S.inverse();
 
     Xest = Xest + K * y;
-    set_state(Xest);
 
     P_t = (Eigen::Matrix<double, 4, 4>::Identity() - K * J_g) * P_pred;
 }

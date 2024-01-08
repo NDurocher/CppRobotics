@@ -4,11 +4,11 @@
 
 #include "robot.h"
 
-class EKF : robot{
+class EKF {
 public:
-	explicit EKF(double dt);
+	explicit EKF();
 
-	void predict_update(Eigen::MatrixXd& Xest, Eigen::MatrixXd& U, Eigen::MatrixXd& z);
+	void predict_update(Eigen::MatrixXd& Xest, Eigen::MatrixXd& U, Eigen::MatrixXd& z, double timestep);
 	void RTS(Eigen::MatrixXd& Xest, Eigen::MatrixXd& XestPrev, Eigen::MatrixXd& Pprev);
 
 private:
