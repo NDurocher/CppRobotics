@@ -1,16 +1,18 @@
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/eigen.hpp>
+#define SHOW_PLOT
 
 #include "vo.h"
-#include "matplotlibcpp.h"
+
+#ifdef SHOW_PLOT
+    #include "matplotlibcpp.h"
+    namespace plt = matplotlibcpp;
+#endif
 
 using namespace std;
-namespace plt = matplotlibcpp;
 
 int main() {
-
-    bool SHOW_PLOT = true;
     std::string dataDir = "/Users/NathanDurocher/cppyourself/CppRobotics/Visual_Odometry/data/dataset/sequences";
     std::string sequence = "03"; // # 00-21, include leading zero
     std::string camera_0 = "/image_0";
@@ -34,11 +36,11 @@ int main() {
 
     // vo.showvideo();
 
-    for (unsigned p = 0; p < 400; p++) { //vo._poses.size()
-        std::cout << "Proccesing pose #: " << p + 1 << std::endl;
+    for (unsigned p = 0; p < 100; p++) { //vo._poses.size()
+//        std::cout << "Proccesing pose #: " << p + 1 << std::endl;
         if (p == 0) {
-            current_pose = vo._poses[p];
-            current_pose_2 = vo_2._poses[p];
+            current_pose = vo.ground_truth_poses()[p];
+            current_pose_2 = vo_2.ground_truth_poses()[p];
         } else {
             q1.clear();
             q2.clear();
@@ -67,22 +69,22 @@ int main() {
         est_x.push_back(avg_pose.clone().at<float>(0, 3));
         est_y.push_back(avg_pose.clone().at<float>(2, 3));
 
-        true_x.push_back(vo._poses[p].at<float>(0, 3));
-        true_y.push_back(vo._poses[p].at<float>(2, 3));
+        true_x.push_back(vo.ground_truth_poses()[p].at<float>(0, 3));
+        true_y.push_back(vo.ground_truth_poses()[p].at<float>(2, 3));
 
         float E = sqrt(pow(est_x[p] - true_x[p], 2) + pow(est_y[p] - true_y[p], 2));
         error.push_back(E);
-        framenum.push_back(p);
-
+        framenum.push_back(static_cast<float>(p));
     }
 
 
     // Plot paths here:
-    if (SHOW_PLOT) {
+    #ifdef SHOW_PLOT
         plt::named_plot("Estimated Position", est_x, est_y);
         plt::named_plot("True Position", true_x, true_y);
         plt::legend();
         plt::show();
-    }
+    #endif
+
     return 0;
 }

@@ -13,17 +13,6 @@ class VO {
 public:
     VO(const std::string &dataDir, std::string sequence, std::string &camera);
 
-    std::vector<cv::Mat> _calibs; // Contains calin for both Left and Right Camera
-    std::vector<cv::Mat> _poses; // Contains ground truth poses for camera
-    std::vector<std::string> _strPoses;
-    std::vector<cv::Mat> _images;
-    // cv::Ptr<cv::xfeatures2d::SURF> _orb = cv::xfeatures2d::SURF::create(400, 4, 2, true, false);
-    cv::Ptr<cv::FeatureDetector> _orb = cv::ORB::create(3000);
-    cv::Ptr<cv::DescriptorMatcher> _flann = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
-
-    cv::Mat _K; // Camera Intrinsic Parameters (3x3)
-    cv::Mat _P; // Camera Projection Matrix (3x4)
-
     void load_images(std::string filePath, std::string &sequence, std::string &camera);
 
     void load_calib(std::string filePath, std::string &sequence);
@@ -43,5 +32,19 @@ public:
 
     static void stringLine2Matrix(cv::Mat &tempMat, int &rows, int &cols, std::string &line);
 
+    std::vector<cv::Mat> ground_truth_poses();
+
     void showvideo();
+
+private:
+    std::vector<cv::Mat> calibs; // Contains calibrations for both Left and Right Camera
+    std::vector<cv::Mat> poses; // Contains ground truth poses for camera
+    std::vector<std::string> strPoses;
+    std::vector<cv::Mat> images;
+    // cv::Ptr<cv::xfeatures2d::SURF> _orb = cv::xfeatures2d::SURF::create(400, 4, 2, true, false);
+    cv::Ptr<cv::FeatureDetector> orb = cv::ORB::create(300);
+    cv::Ptr<cv::DescriptorMatcher> flann = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
+
+    cv::Mat K; // Camera Intrinsic Parameters (3x3)
+    cv::Mat P; // Camera Projection Matrix (3x4)
 };

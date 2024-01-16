@@ -37,7 +37,7 @@ void VO::load_images(std::string filePath, std::string &sequence, std::string &c
     }
     std::sort(sorted_paths.begin(), sorted_paths.end());
     for (auto &image: sorted_paths) {
-        _images.push_back(cv::imread(image, cv::IMREAD_GRAYSCALE));
+        images.push_back(cv::imread(image, cv::IMREAD_GRAYSCALE));
     }
 }
 
@@ -52,13 +52,13 @@ void VO::load_calib(std::string filePath, std::string &sequence) {
     std::string line;
     while (getline(calibFile, line)) {
         stringLine2Matrix(tempMat, rows, cols, line);
-        _calibs.push_back(tempMat.clone());
+        calibs.push_back(tempMat.clone());
     }
 
     calibFile.close();
 
-    _K = _calibs[1].rowRange(0, 3).colRange(0, 3);
-    _P = _calibs[1].rowRange(0, 3).colRange(0, 4);
+    K = calibs[1].rowRange(0, 3).colRange(0, 3);
+    P = calibs[1].rowRange(0, 3).colRange(0, 4);
 }
 
 void VO::load_poses(std::string filePath, std::string &sequence) {
@@ -73,7 +73,7 @@ void VO::load_poses(std::string filePath, std::string &sequence) {
     std::string line;
     while (getline(poseFile, line)) {
         stringLine2Matrix(tempMat, rows, cols, line);
-        _poses.push_back(tempMat.clone());
+        poses.push_back(tempMat.clone());
     }
     poseFile.close();
 }
@@ -81,8 +81,8 @@ void VO::load_poses(std::string filePath, std::string &sequence) {
 void VO::get_matches(unsigned &i, std::vector<cv::Point2f> &q1, std::vector<cv::Point2f> &q2) {
     std::vector<cv::KeyPoint> keypoints1, keypoints2;
     cv::Mat descriptors1, descriptors2;
-    _orb->detectAndCompute(_images[i - 1], cv::noArray(), keypoints1, descriptors1);
-    _orb->detectAndCompute(_images[i], cv::noArray(), keypoints2, descriptors2);
+    orb->detectAndCompute(images[i - 1], cv::noArray(), keypoints1, descriptors1);
+    orb->detectAndCompute(images[i], cv::noArray(), keypoints2, descriptors2);
     std::vector<std::vector<cv::DMatch> > knn_matches;
 
     if (descriptors1.type() != CV_32F) {
@@ -90,7 +90,7 @@ void VO::get_matches(unsigned &i, std::vector<cv::Point2f> &q1, std::vector<cv::
         descriptors2.convertTo(descriptors2, CV_32F);
     }
 
-    _flann->knnMatch(descriptors1, descriptors2, knn_matches, 2);
+    flann->knnMatch(descriptors1, descriptors2, knn_matches, 2);
 
     //-- Filter matches using the Lowe's ratio test
     const float ratio_thresh = 0.7f;
@@ -111,8 +111,8 @@ void VO::get_poses(std::vector<cv::Point2f> &q1, std::vector<cv::Point2f> &q2, c
     cv::Mat mask_ransac;
     cv::findHomography(q1, q2, cv::RANSAC, 3, mask_ransac, 1000, 0.995);
 
-    cv::Mat Emat = cv::findEssentialMat(q1, q2, _K, cv::RANSAC, 0.999, 2.0, mask_ransac);
-    // Decompose essitial matrix into R and t
+    cv::Mat Emat = cv::findEssentialMat(q1, q2, K, cv::RANSAC, 0.999, 2.0, mask_ransac);
+    // Decompose essential matrix into R and t
     cv::Mat R, t;
     decomp_essential_mat(Emat, R, t, q1, q2);
     formTransformMat(R, t, Trans_Mat);
@@ -137,9 +137,9 @@ void VO::decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector
     for (unsigned i = 0; i < T_list.size(); i++) {
         cv::Mat T = cv::Mat::zeros(4, 4, CV_32F);
         formTransformMat(T_list[i][0], T_list[i][1], T);
-        cv::Mat Ptemp = _P * T;
+        cv::Mat Ptemp = P * T;
         cv::Mat HQ1;
-        cv::triangulatePoints(_P, Ptemp, q1, q2, HQ1);
+        cv::triangulatePoints(P, Ptemp, q1, q2, HQ1);
         cv::Mat HQ2 = T * HQ1;
 
         Eigen::MatrixXf EHQ1, EHQ2;
@@ -226,10 +226,14 @@ void VO::stringLine2Matrix(cv::Mat &tempMat, int &rows, int &cols, std::string &
     }
 }
 
+std::vector<cv::Mat> VO::ground_truth_poses() {
+    return poses;
+}
+
 void VO::showvideo() {
-    for (const auto &img: _images) {
+    for (const auto &img: images) {
         cv::imshow("KITTI_Data", img);
-        int k = cv::waitKey(0); // Wait for a keystroke in the window
+        cv::waitKey(0); // Wait for a keystroke in the window
     }
     cv::destroyAllWindows();
 }
