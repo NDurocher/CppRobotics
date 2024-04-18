@@ -13,36 +13,16 @@
 #include <opencv2/core/eigen.hpp>
 #include <Eigen/Dense>
 
+VO::VO(const std::string &dataDir, std::string sequence) {
 
-namespace fs = std::__fs::filesystem;
-
-VO::VO(const std::string &dataDir, std::string sequence, std::string &camera) {
-
-    load_images(dataDir, sequence, camera);
-    std::cout << "Images Loaded" << std::endl;
     load_poses(dataDir, sequence);
     std::cout << "GT Poses Loaded" << std::endl;
     load_calib(dataDir, sequence);
     std::cout << "Camera Calibs Loaded" << std::endl;
 }
 
-void VO::load_images(std::string filePath, std::string &sequence, std::string &camera) {
-    // Import left camera images (can change to image_r and check diff in output)
-    filePath.append("/" + sequence + camera);
-    // std::sort(files_in_directory.begin(), files_in_directory.end())
-    const fs::path fs_path{filePath};
-    std::vector<std::string> sorted_paths;
-    for (auto &f: fs::directory_iterator(fs_path)) {
-        sorted_paths.push_back(f.path());
-    }
-    std::sort(sorted_paths.begin(), sorted_paths.end());
-    for (auto &image: sorted_paths) {
-        images.push_back(cv::imread(image, cv::IMREAD_GRAYSCALE));
-    }
-}
-
 void VO::load_calib(std::string filePath, std::string &sequence) {
-    filePath.append("/" + sequence + "/calib.txt");
+    filePath.append(sequence + "/calib.txt");
 
     std::ifstream calibFile(filePath);
 
@@ -62,7 +42,7 @@ void VO::load_calib(std::string filePath, std::string &sequence) {
 }
 
 void VO::load_poses(std::string filePath, std::string &sequence) {
-    filePath.append("/poses/" + sequence + ".txt");
+    filePath.append("poses/" + sequence + ".txt");
 
     std::ifstream poseFile(filePath);
 
@@ -78,38 +58,9 @@ void VO::load_poses(std::string filePath, std::string &sequence) {
     poseFile.close();
 }
 
-void VO::get_matches(unsigned &i, std::vector<cv::Point2f> &q1, std::vector<cv::Point2f> &q2) {
-    std::vector<cv::KeyPoint> keypoints1, keypoints2;
-    cv::Mat descriptors1, descriptors2;
-    orb->detectAndCompute(images[i - 1], cv::noArray(), keypoints1, descriptors1);
-    orb->detectAndCompute(images[i], cv::noArray(), keypoints2, descriptors2);
-    std::vector<std::vector<cv::DMatch> > knn_matches;
-
-    if (descriptors1.type() != CV_32F) {
-        descriptors1.convertTo(descriptors1, CV_32F);
-        descriptors2.convertTo(descriptors2, CV_32F);
-    }
-
-    flann->knnMatch(descriptors1, descriptors2, knn_matches, 2);
-
-    //-- Filter matches using the Lowe's ratio test
-    const float ratio_thresh = 0.7f;
-    std::vector<cv::DMatch> good_matches;
-    for (auto &knn_matche: knn_matches) {
-        if (knn_matche[0].distance < ratio_thresh * knn_matche[1].distance) {
-            good_matches.push_back(knn_matche[0]);
-        }
-    }
-    for (auto match: good_matches) {
-        q1.push_back(keypoints1[match.queryIdx].pt);
-        q2.push_back(keypoints2[match.trainIdx].pt);
-    }
-
-}
-
 void VO::get_poses(std::vector<cv::Point2f> &q1, std::vector<cv::Point2f> &q2, cv::Mat &Trans_Mat) {
     cv::Mat mask_ransac;
-    cv::findHomography(q1, q2, cv::RANSAC, 3, mask_ransac, 1000, 0.995);
+    cv::findHomography(q1, q2, cv::RANSAC, 1, mask_ransac, 1000, 0.995);
 
     cv::Mat Emat = cv::findEssentialMat(q1, q2, K, cv::RANSAC, 0.999, 2.0, mask_ransac);
     // Decompose essential matrix into R and t
@@ -228,14 +179,6 @@ void VO::stringLine2Matrix(cv::Mat &tempMat, int &rows, int &cols, std::string &
 
 std::vector<cv::Mat> VO::ground_truth_poses() {
     return poses;
-}
-
-void VO::showvideo() {
-    for (const auto &img: images) {
-        cv::imshow("KITTI_Data", img);
-        cv::waitKey(0); // Wait for a keystroke in the window
-    }
-    cv::destroyAllWindows();
 }
 
 

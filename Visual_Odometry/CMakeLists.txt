@@ -29,8 +29,6 @@ include_directories(${EIGEN_INCLUDE_DIRS}
 					${PARENT_DIR}/library/matplotlib-cpp/
 )
 
-# link_directories(${PARENT_DIR}/gnuplot-iostream
-# )
 link_directories(${PARENT_DIR}/library/matplotlib-cpp/
 )
 
@@ -39,6 +37,10 @@ add_executable(${PROJECT_NAME}
 				main.cpp
 				include/VO.h
 				VO.cpp
+				include/featuredetector.h
+				featuredetector.cpp
+				include/image_loader.h
+				image_loader.cpp
 ) 
 
 target_link_libraries (${PROJECT_NAME}

@@ -5,12 +5,6 @@ project(utils VERSION 0.1.0
 
 # Set the library sources
 set(LIBRARY_SOURCES
-        my_time.cpp
-        robot.cpp
-)
-
-# Set the library headers
-set(LIBRARY_HEADERS
         include/my_time.h
         include/robot.h
 )
@@ -19,7 +13,8 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE
 )
 
 # Create the library target
-add_library(${PROJECT_NAME} ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
+add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
+set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 include_directories(${EIGEN_INCLUDE_DIRS}
 )
