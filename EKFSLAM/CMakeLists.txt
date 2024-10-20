@@ -36,3 +36,16 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 						${Gnuplot_LIBRARIES}
 						CppRob::utils
 )
+
+add_library(lib_${PROJECT_NAME} 
+	ekf_slam.cpp
+	include/ekf_slam.h)
+
+target_link_libraries(lib_${PROJECT_NAME} PUBLIC
+						Eigen3::Eigen
+						${Boost_LIBRARIES}
+						${Gnuplot_LIBRARIES}
+						CppRob::utils
+)
+
+# add_library(CppRob::${PROJECT_NAME} ALIAS lib_${PROJECT_NAME})

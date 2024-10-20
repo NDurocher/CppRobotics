@@ -5,8 +5,8 @@
 
 #include "gnuplot-iostream.h"
 #include "EKF.h"
-#include "robot.h"
-#include "my_time.h"
+#include "utils/robot.h"
+#include "utils/my_time.h"
 
 using namespace std;
 

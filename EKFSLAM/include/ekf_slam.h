@@ -3,9 +3,10 @@
 #include <Eigen/Dense>
 #include <cmath>
 #include <chrono>
-#include "robot.h"
-#include "my_time.h"
+#include "utils/robot.h"
+#include "utils/my_time.h"
 
+namespace ekfslam {
 
 struct SlamVariables {
     Eigen::MatrixXd P_t{{1, 0, 0},
@@ -60,4 +61,4 @@ int search_lm_id(const Eigen::MatrixXd &zi_obs, Eigen::MatrixXd &xest, SlamVaria
 
 Eigen::MatrixXd H_jacob(double q, Eigen::MatrixXd &delta, Eigen::MatrixXd &xest, int i, const SimVariables &sim_vars);
 
-
+}   // namespace ekfslam

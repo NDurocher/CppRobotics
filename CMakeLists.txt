@@ -12,6 +12,7 @@ add_subdirectory(EKFSLAM)
 add_subdirectory(GPS_EKF)
 add_subdirectory(RRT)
 add_subdirectory(Visual_Odometry)
+add_subdirectory(particle_filter)
 
 
 # include user libraries

@@ -16,10 +16,12 @@ public:
 
     void load_poses(std::string filePath, std::string &sequence);
 
-    void get_poses(std::vector<cv::Point2f> &q1, std::vector<cv::Point2f> &q2, cv::Mat &Trans_Mat);
+    void get_poses(std::vector<cv::Point2f> &points2d, std::vector<cv::Point3f> &points3d, cv::Mat &Trans_Mat);
 
-    void decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point2f> &q1,
-                              std::vector<cv::Point2f> &q2);
+    std::vector<cv::Point3f> point2d23d(std::vector<cv::Point2f> points2d, cv::Mat& depth_map);
+
+    void decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point3f> &q1,
+                              std::vector<cv::Point3f> &q2);
 
     static void get_relativeScale(Eigen::MatrixXf &HQ1, Eigen::MatrixXf &HQ2, std::vector<float> &relative_scale);
 

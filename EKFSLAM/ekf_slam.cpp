@@ -3,6 +3,7 @@
 #include <vector>
 #include <random>
 
+namespace ekfslam {
 
 int CountLMs(Eigen::MatrixXd &Xest, const SimVariables &sim_vars) {
     double con = (static_cast<int>(Xest.rows()) - sim_vars.state_size) / 2;
@@ -226,7 +227,7 @@ double pi2pi(double angle) {
 }
 
 
-
+}   // namespace ekfslam
 
 
 

@@ -1,5 +1,7 @@
 #include "BayesEstimator.h"
 
+BayesianEstimator::BayesianEstimator(){}
+
 BayesianEstimator::BayesianEstimator(double priorMean, double priorVariance, double likelihoodMean, double likelihoodVariance)
         : priorMean(priorMean), priorVariance(priorVariance), likelihoodMean(likelihoodMean), likelihoodVariance(likelihoodVariance) {
     }

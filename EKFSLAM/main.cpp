@@ -2,8 +2,6 @@
 
 #include "gnuplot-iostream.h"
 #include "ekf_slam.h"
-#include "robot.h"
-#include "my_time.h"
 
 using namespace std;
 
@@ -20,8 +18,8 @@ int main() {
     bool SHOW_PLOT = true;
     bool SHOW_EST_LM_POS_PLOT = false;
 
-    SlamVariables slam_vars;
-    SimVariables sim_vars;
+    ekfslam::SlamVariables slam_vars;
+    ekfslam::SimVariables sim_vars;
 
     std::vector<double> Est_x;
     std::vector<double> Est_y;
@@ -56,11 +54,11 @@ int main() {
     double time = 0.;
     while (time < SIM_TIME) {
 
-        Eigen::MatrixXd Z_obs = Observation(U, Xtrue, LM_pos, slam_vars, sim_vars);
+        Eigen::MatrixXd Z_obs = ekfslam::Observation(U, Xtrue, LM_pos, slam_vars, sim_vars);
         Un = diff_drive::corrupt_input(U, velocity_variance, heading_variance);
 
-        Predict(Xest, Un, slam_vars, sim_vars);
-        Update(Xest, Z_obs, slam_vars, sim_vars);
+        ekfslam::Predict(Xest, Un, slam_vars, sim_vars);
+        ekfslam::Update(Xest, Z_obs, slam_vars, sim_vars);
 
         Est_x.push_back(Xest(0, 0));
         Est_y.push_back(Xest(1, 0));

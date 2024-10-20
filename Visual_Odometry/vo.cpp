@@ -58,19 +58,43 @@ void VO::load_poses(std::string filePath, std::string &sequence) {
     poseFile.close();
 }
 
-void VO::get_poses(std::vector<cv::Point2f> &q1, std::vector<cv::Point2f> &q2, cv::Mat &Trans_Mat) {
-    cv::Mat mask_ransac;
-    cv::findHomography(q1, q2, cv::RANSAC, 1, mask_ransac, 1000, 0.995);
+void VO::get_poses(std::vector<cv::Point2f> &points2d, std::vector<cv::Point3f> &points3d, cv::Mat &Trans_Mat) {
 
-    cv::Mat Emat = cv::findEssentialMat(q1, q2, K, cv::RANSAC, 0.999, 2.0, mask_ransac);
-    // Decompose essential matrix into R and t
-    cv::Mat R, t;
-    decomp_essential_mat(Emat, R, t, q1, q2);
+
+    cv::Mat R, r, t;
+    cv::solvePnPRansac(points3d, points2d, K, {}, r, t);
+
+    // cv::findHomography(q1, q2, cv::RANSAC, 1, mask_ransac, 1000, 0.995);
+
+    // cv::Mat Emat = cv::findEssentialMat(q1, q2, K, cv::RANSAC, 0.999, 2.0, mask_ransac);
+    // // Decompose essential matrix into R and t
+    // cv::Mat R, t;
+    // decomp_essential_mat(Emat, R, t, q1, q2);
+    cv::Rodrigues(r, R);
     formTransformMat(R, t, Trans_Mat);
 }
 
-void VO::decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point2f> &q1,
-                              std::vector<cv::Point2f> &q2) {
+std::vector<cv::Point3f> VO::point2d23d(std::vector<cv::Point2f> points2d, cv::Mat& depth_map){
+    std::vector<cv::Point3f> points3d;
+    
+    // Below is the correct impl to get world coords, need to apply to my code
+    
+    cv::Point3f point3;
+    for (auto point : points2d){        
+        auto depth = depth_map.at<float>(point.x,point.y);
+        
+        point3.x = (point.x - K.at<float>(0, 2)) * depth / K.at<float>(0, 0); // (x - cx) * depth / fx
+        point3.y = (point.y - K.at<float>(1, 2)) * depth / K.at<float>(1, 1); // (y - cy) * depth / fy
+        point3.z = depth;
+
+        points3d.push_back(point3);
+    }
+    
+    return points3d;
+}
+
+void VO::decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point3f> &q1,
+                              std::vector<cv::Point3f> &q2) {
     cv::Mat R1, R2;
     cv::decomposeEssentialMat(Emat, R1, R2, t);
     if (R1.type() != CV_32F) {
@@ -128,7 +152,7 @@ void VO::get_relativeScale(Eigen::MatrixXf &HQ1, Eigen::MatrixXf &HQ2, std::vect
 
 void VO::formTransformMat(cv::Mat &R, cv::Mat &t, cv::Mat &T) {
     cv::hconcat(R, t, T);
-    T.push_back(cv::Mat::zeros(1, 4, CV_32F));
+    T.push_back(cv::Mat::zeros(1, 4, T.type()));
     Eigen::MatrixXf tempT;
     cv::cv2eigen(T, tempT);
     tempT(3, 3) = 1.0;

@@ -1,8 +1,9 @@
 #pragma once
 
+#include "utils/robot.h"
 #include <Eigen/Dense>
 
-#include "robot.h"
+
 
 class EKF {
 public:
