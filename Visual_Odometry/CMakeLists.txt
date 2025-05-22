@@ -14,21 +14,12 @@ endif()
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 # find_package(Gnuplot 5.4 COMPONENTS ALL)
 find_package(OpenCV REQUIRED)
-find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
-find_package(PythonLibs 3.0 REQUIRED)
-include_directories(${PYTHON3_INCLUDE_DIRS} ${NumPy_INCLUDE_DIRS})
-
-
 set(OpenCV_INCLUDE_DIRS /Users/NathanDurocher/opencv/include)
 
 include_directories(${EIGEN_INCLUDE_DIRS}
 					${BOOST_INCLUDE_DIRS}
 					${OpenCV_INCLUDE_DIRS}
 					include/
-					${PARENT_DIR}/library/matplotlib-cpp/
-)
-
-link_directories(${PARENT_DIR}/library/matplotlib-cpp/
 )
 
 # add the executable
@@ -46,6 +37,4 @@ target_link_libraries (${PROJECT_NAME}
 						Eigen3::Eigen
 						${Gnuplot_LIBRARIES}
 						${OpenCV_LIBS}
-        				${PYTHON_LIBRARIES}
-        				Python3::NumPy
 )
