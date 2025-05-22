@@ -1,8 +1,9 @@
-#include "featuredetector.h"
+#include "feature_detector.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp>
 
-void OrbFeatureDetector::get_matches(keypoint_descriptor &kp_descript1, keypoint_descriptor &kp_descript2, std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2) {
+void OrbFeatureDetector::get_matches(keypoint_descriptor &kp_descript1, keypoint_descriptor &kp_descript2,
+                                     std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2) {
     std::vector<std::vector<cv::DMatch> > knn_matches;
 
     flann->knnMatch(kp_descript1.second, kp_descript2.second, knn_matches, 4);
@@ -25,14 +26,13 @@ void OrbFeatureDetector::get_matches(keypoint_descriptor &kp_descript1, keypoint
     // cv::imshow("matches", outImg);
     // cv::waitKey(0);
     // cv::destroyAllWindows();
-
 }
 
 keypoint_descriptor OrbFeatureDetector::compute_features(cv::Mat &image) {
     std::vector<cv::KeyPoint> keypoints;
     cv::Mat descriptors;
     orb->detectAndCompute(image, cv::noArray(), keypoints, descriptors);
-    
+
 
     if (descriptors.type() != CV_32F) {
         descriptors.convertTo(descriptors, CV_32F);

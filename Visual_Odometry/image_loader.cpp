@@ -7,8 +7,8 @@
 
 namespace fs = std::__fs::filesystem;
 
-ImageLoader::ImageLoader(std::string &dataDir, std::string &sequence){
-	load_images(dataDir, sequence);
+ImageLoader::ImageLoader(std::string &dataDir, std::string &sequence) {
+    load_images(dataDir, sequence);
     std::cout << "Images Loaded" << std::endl;
 }
 
@@ -48,4 +48,3 @@ void ImageLoader::showvideo() {
     }
     cv::destroyAllWindows();
 }
-

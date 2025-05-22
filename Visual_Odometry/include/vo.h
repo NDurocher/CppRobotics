@@ -3,8 +3,6 @@
 #include <vector>
 #include <string>
 
-#include <opencv2/opencv.hpp>
-#include <opencv2/features2d.hpp>
 #include <opencv2/calib3d.hpp>
 #include <Eigen/Dense>
 
@@ -18,7 +16,7 @@ public:
 
     void get_poses(std::vector<cv::Point2f> &points2d, std::vector<cv::Point3f> &points3d, cv::Mat &Trans_Mat);
 
-    std::vector<cv::Point3f> point2d23d(std::vector<cv::Point2f> points2d, cv::Mat& depth_map);
+    std::vector<cv::Point3f> point2d23d(std::vector<cv::Point2f> points2d, cv::Mat &depth_map);
 
     void decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point3f> &q1,
                               std::vector<cv::Point3f> &q2);

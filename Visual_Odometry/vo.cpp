@@ -14,7 +14,6 @@
 #include <Eigen/Dense>
 
 VO::VO(const std::string &dataDir, std::string sequence) {
-
     load_poses(dataDir, sequence);
     std::cout << "GT Poses Loaded" << std::endl;
     load_calib(dataDir, sequence);
@@ -59,8 +58,6 @@ void VO::load_poses(std::string filePath, std::string &sequence) {
 }
 
 void VO::get_poses(std::vector<cv::Point2f> &points2d, std::vector<cv::Point3f> &points3d, cv::Mat &Trans_Mat) {
-
-
     cv::Mat R, r, t;
     cv::solvePnPRansac(points3d, points2d, K, {}, r, t);
 
@@ -74,22 +71,22 @@ void VO::get_poses(std::vector<cv::Point2f> &points2d, std::vector<cv::Point3f> 
     formTransformMat(R, t, Trans_Mat);
 }
 
-std::vector<cv::Point3f> VO::point2d23d(std::vector<cv::Point2f> points2d, cv::Mat& depth_map){
+std::vector<cv::Point3f> VO::point2d23d(std::vector<cv::Point2f> points2d, cv::Mat &depth_map) {
     std::vector<cv::Point3f> points3d;
-    
+
     // Below is the correct impl to get world coords, need to apply to my code
-    
+
     cv::Point3f point3;
-    for (auto point : points2d){        
-        auto depth = depth_map.at<float>(point.x,point.y);
-        
+    for (auto point: points2d) {
+        auto depth = depth_map.at<float>(point.x, point.y);
+
         point3.x = (point.x - K.at<float>(0, 2)) * depth / K.at<float>(0, 0); // (x - cx) * depth / fx
         point3.y = (point.y - K.at<float>(1, 2)) * depth / K.at<float>(1, 1); // (y - cy) * depth / fy
         point3.z = depth;
 
         points3d.push_back(point3);
     }
-    
+
     return points3d;
 }
 
@@ -102,10 +99,12 @@ void VO::decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector
         R2.convertTo(R2, CV_32F);
         t.convertTo(t, CV_32F);
     }
-    std::vector<std::vector<cv::Mat>> T_list = {{R1, t},
-                                                {R1, -t},
-                                                {R2, t},
-                                                {R2, -t}};
+    std::vector<std::vector<cv::Mat> > T_list = {
+        {R1, t},
+        {R1, -t},
+        {R2, t},
+        {R2, -t}
+    };
 
     std::vector<int> pos_count = {0, 0, 0, 0};
     std::vector<float> relative_scale;
@@ -171,7 +170,6 @@ void VO::stringLine2Matrix(cv::Mat &tempMat, int &rows, int &cols, std::string &
     }
 
     for (std::string::const_iterator i = line.begin(); i != line.end(); i++) {
-
         // If i is not a delim, then append it to strnum
         if (delim.find(*i) == std::string::npos) {
             strNum += *i;
@@ -204,8 +202,3 @@ void VO::stringLine2Matrix(cv::Mat &tempMat, int &rows, int &cols, std::string &
 std::vector<cv::Mat> VO::ground_truth_poses() {
     return poses;
 }
-
-
-
-
-

@@ -12,7 +12,6 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif()
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-find_package(Boost 1.78 COMPONENTS ALL)
 # find_package(Gnuplot 5.4 COMPONENTS ALL)
 find_package(OpenCV REQUIRED)
 find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
@@ -37,18 +36,16 @@ add_executable(${PROJECT_NAME}
 				main.cpp
 				include/VO.h
 				VO.cpp
-				include/featuredetector.h
-				featuredetector.cpp
+        		include/feature_detector.h
+        		feature_detector.cpp
 				include/image_loader.h
 				image_loader.cpp
 ) 
 
 target_link_libraries (${PROJECT_NAME}
 						Eigen3::Eigen
-						${Boost_LIBRARIES}
 						${Gnuplot_LIBRARIES}
 						${OpenCV_LIBS}
         				${PYTHON_LIBRARIES}
         				Python3::NumPy
-
 )
