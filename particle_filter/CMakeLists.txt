@@ -9,8 +9,6 @@ get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE
 )
-find_package(Boost 1.78 COMPONENTS ALL
-)
 find_package(OpenCV REQUIRED)
 
 set(OpenCV_INCLUDE_DIRS /Users/NathanDurocher/opencv/include)
@@ -30,7 +28,6 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
 	Eigen3::Eigen
-	${Boost_LIBRARIES}
 	${OpenCV_LIBS}
 	CppRob::utils
 )
