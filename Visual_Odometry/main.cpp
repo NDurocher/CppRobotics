@@ -4,11 +4,8 @@
 
 #include <Eigen/Dense>
 #include <opencv2/core/eigen.hpp>
-#define SHOW_PLOT
 
-#ifdef SHOW_PLOT
-// TODO: add opencv includes for plots if needed
-#endif
+#include "utils/plot_visualizer.h"
 
 using namespace std;
 
@@ -82,9 +79,20 @@ int main() {
 
 
     // Plot paths here:
-#ifdef SHOW_PLOT
-    // TODO: Add opencv plot
-#endif
+    // Create visualizer and generate plot
+    std::vector<std::vector<float> > x_data{est_x, true_x};
+    std::vector<std::vector<float> > y_data{est_y, true_y};
+
+    PlotVisualizer viz(800, 400); // Green line
+    cv::Mat plot = viz.plotMultiple(x_data, y_data, {"estimated, ground truth"});
+
+    // Display the plot
+    cv::imshow("Estimated vs Ground Truth", plot);
+    cv::waitKey(0);
+    cv::destroyAllWindows();
+
+    // Optionally save the plot
+    cv::imwrite("timeseries.png", plot);
 
     return 0;
 }
