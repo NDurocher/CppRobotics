@@ -6,6 +6,8 @@ project(utils VERSION 0.1.0
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE
 )
+find_package(OpenCV REQUIRED)
+set(OpenCV_INCLUDE_DIRS /Users/NathanDurocher/opencv/include)
 
 # Create the library target
 add_library(${PROJECT_NAME} STATIC
@@ -14,7 +16,11 @@ add_library(${PROJECT_NAME} STATIC
         include/utils/my_time.h
         my_time.cpp
         include/utils/obstacle.h
-        obstacle.cpp)
+        obstacle.cpp
+        include/utils/time_series_visualizer.h
+        time_series_visualizer.cpp
+        plot_visualizer.cpp
+        plot_visualizer.h)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -23,10 +29,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 # )
 
 # Set the include directories for the library
-target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_include_directories(${PROJECT_NAME} PUBLIC include PRIVATE ${OpenCV_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
         Eigen3::Eigen
+        PRIVATE
+        ${OpenCV_LIBS}
 )
 
 # create alias

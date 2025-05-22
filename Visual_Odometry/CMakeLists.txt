@@ -37,4 +37,5 @@ target_link_libraries (${PROJECT_NAME}
 						Eigen3::Eigen
 						${Gnuplot_LIBRARIES}
 						${OpenCV_LIBS}
+						CppRob::utils
 )

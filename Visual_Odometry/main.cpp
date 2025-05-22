@@ -1,9 +1,12 @@
 #include "vo.h"
 #include "feature_detector.h"
 #include "image_loader.h"
+#include "utils/time_series_visualizer.h"
 
 #include <Eigen/Dense>
 #include <opencv2/core/eigen.hpp>
+
+#include "../library/utils/plot_visualizer.h"
 #define SHOW_PLOT
 
 #ifdef SHOW_PLOT
@@ -83,7 +86,20 @@ int main() {
 
     // Plot paths here:
 #ifdef SHOW_PLOT
-    // TODO: Add opencv plot
+    // Create visualizer and generate plot
+    std::vector<std::vector<float>> x_data{est_x, true_x};
+    std::vector<std::vector<float>> y_data{est_y, true_y};
+
+    PlotVisualizer viz(800, 400); // Green line
+    cv::Mat plot = viz.plotMultiple(x_data, y_data,{"estimated, ground truth"});
+
+    // Display the plot
+    cv::imshow("Estimated vs Ground Truth", plot);
+    cv::waitKey(0);
+    cv::destroyAllWindows();
+
+    // Optionally save the plot
+    cv::imwrite("timeseries.png", plot);
 #endif
 
     return 0;
