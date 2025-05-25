@@ -9,9 +9,13 @@
 
 using namespace std;
 
-int main() {
-    std::string dataDir = "/Users/NathanDurocher/cppyourself/CppRobotics/Visual_Odometry/data/dataset/sequences/";
-    std::string sequence = "03"; // # 00-21, include leading zero
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        std::cerr << "Required argument for image data directory and sequence number (01-23)" << std::endl;
+        return EXIT_FAILURE;
+    }
+    std::string dataDir = argv[1];
+    std::string sequence = argv[2];
     VO vo(dataDir, sequence);
     ImageLoader loader(dataDir, sequence);
     OrbFeatureDetector fd;
@@ -31,14 +35,9 @@ int main() {
     std::vector<float> est_y;
     std::vector<float> true_x;
     std::vector<float> true_y;
-    std::vector<float> error;
-    std::vector<float> framenum;
-
-    // vo.showvideo();
+    // loader.show_video();
 
     for (unsigned p = 0; p < 25; p++) {
-        //vo._poses.size()
-        //        std::cout << "Proccesing pose #: " << p + 1 << std::endl;
         image_pair = loader.get_image_pair(p);
 
         // get features from this image and give points z point from depth map
@@ -72,19 +71,14 @@ int main() {
         true_x.push_back(vo.ground_truth_poses()[p].at<float>(0, 3));
         true_y.push_back(vo.ground_truth_poses()[p].at<float>(2, 3));
 
-        // float E = sqrt(pow(est_x[p] - true_x[p], 2) + pow(est_y[p] - true_y[p], 2));
-        // error.push_back(E);
-        // framenum.push_back(static_cast<float>(p));
     }
 
-
-    // Plot paths here:
     // Create visualizer and generate plot
     std::vector<std::vector<float> > x_data{est_x, true_x};
     std::vector<std::vector<float> > y_data{est_y, true_y};
 
     PlotVisualizer viz(800, 400); // Green line
-    cv::Mat plot = viz.plotMultiple(x_data, y_data, {"estimated, ground truth"});
+    cv::Mat plot = viz.plotMultiple(x_data, y_data, {"estimated", "ground truth"});
 
     // Display the plot
     cv::imshow("Estimated vs Ground Truth", plot);
@@ -92,7 +86,7 @@ int main() {
     cv::destroyAllWindows();
 
     // Optionally save the plot
-    cv::imwrite("timeseries.png", plot);
+    // cv::imwrite("timeseries.png", plot);
 
     return 0;
 }

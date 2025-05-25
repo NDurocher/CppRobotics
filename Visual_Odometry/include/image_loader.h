@@ -1,22 +1,21 @@
-#pragma one
+#pragma once
 
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <string>
 
-
-using ImageList = std::pair<std::vector<cv::Mat>, std::vector<cv::Mat> >;
+using ImageList = std::vector<std::pair<cv::Mat, cv::Mat>>;
 
 class ImageLoader {
 public:
-    ImageLoader(std::string &dataDir, std::string &sequence);
+    ImageLoader(const std::string &dataDir, const std::string &sequence);
 
     std::pair<cv::Mat, cv::Mat> get_image_pair(int index);
 
-    void showvideo();
+    void show_video() const;
 
 private:
-    void load_images(std::string &filePath, std::string &sequence);
+    void load_images(const std::string &filePath, const std::string &sequence);
 
     ImageList images;
 };
