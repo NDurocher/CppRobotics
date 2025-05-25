@@ -7,20 +7,19 @@
 #include <algorithm>
 
 #include <opencv2/opencv.hpp>
-#include <opencv2/features2d.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/core/eigen.hpp>
 #include <Eigen/Dense>
 
-VO::VO(const std::string &dataDir, std::string sequence) {
+VO::VO(const std::string &dataDir, std::string sequence, const bool use_left_image) {
     load_poses(dataDir, sequence);
     std::cout << "GT Poses Loaded" << std::endl;
-    load_calib(dataDir, sequence);
-    std::cout << "Camera Calibs Loaded" << std::endl;
+    load_calib(dataDir, sequence, use_left_image);
+    std::cout << "Camera Calibrations Loaded" << std::endl;
 }
 
-void VO::load_calib(std::string filePath, std::string &sequence) {
+void VO::load_calib(std::string filePath, std::string &sequence, bool use_left_image) {
     filePath.append(sequence + "/calib.txt");
 
     std::ifstream calibFile(filePath);
@@ -31,13 +30,17 @@ void VO::load_calib(std::string filePath, std::string &sequence) {
     std::string line;
     while (getline(calibFile, line)) {
         stringLine2Matrix(tempMat, rows, cols, line);
-        calibs.push_back(tempMat.clone());
+        camera_calibrations.push_back(tempMat.clone());
     }
 
     calibFile.close();
 
-    K = calibs[1].rowRange(0, 3).colRange(0, 3);
-    P = calibs[1].rowRange(0, 3).colRange(0, 4);
+    // calibration file has P0/P1 for left/right grey image cameras
+    auto camera_matrix = use_left_image ? camera_calibrations[0] : camera_calibrations[1];
+
+    // where P = K[R|t] and K is the intrinsic matrix
+    m_camera_intrinsics = camera_matrix.rowRange(0, 3).colRange(0, 3);
+    m_camera_projection = camera_matrix.rowRange(0, 3).colRange(0, 4);
 }
 
 void VO::load_poses(std::string filePath, std::string &sequence) {
@@ -55,33 +58,28 @@ void VO::load_poses(std::string filePath, std::string &sequence) {
         poses.push_back(tempMat.clone());
     }
     poseFile.close();
+    m_num_frames = poses.size();
 }
 
-void VO::get_poses(std::vector<cv::Point2f> &points2d, std::vector<cv::Point3f> &points3d, cv::Mat &Trans_Mat) {
+void VO::get_poses(const std::vector<cv::Point2f> &points2d, const std::vector<cv::Point3f> &points3d,
+                   cv::Mat &Trans_Mat) const {
     cv::Mat R, r, t;
-    cv::solvePnPRansac(points3d, points2d, K, {}, r, t);
-
-    // cv::findHomography(q1, q2, cv::RANSAC, 1, mask_ransac, 1000, 0.995);
-
-    // cv::Mat Emat = cv::findEssentialMat(q1, q2, K, cv::RANSAC, 0.999, 2.0, mask_ransac);
-    // // Decompose essential matrix into R and t
-    // cv::Mat R, t;
-    // decomp_essential_mat(Emat, R, t, q1, q2);
+    cv::solvePnPRansac(points3d, points2d, m_camera_intrinsics, {}, r, t);
     cv::Rodrigues(r, R);
     formTransformMat(R, t, Trans_Mat);
 }
 
-std::vector<cv::Point3f> VO::point2d23d(std::vector<cv::Point2f> points2d, cv::Mat &depth_map) {
+std::vector<cv::Point3f> VO::point2d23d(const std::vector<cv::Point2f> &points2d, cv::Mat &depth_map) {
     std::vector<cv::Point3f> points3d;
 
-    // Below is the correct impl to get world coords, need to apply to my code
+    for (const auto point: points2d) {
+        cv::Point3f point3;
+        const auto depth = depth_map.at<float>(point.x, point.y);
 
-    cv::Point3f point3;
-    for (auto point: points2d) {
-        auto depth = depth_map.at<float>(point.x, point.y);
-
-        point3.x = (point.x - K.at<float>(0, 2)) * depth / K.at<float>(0, 0); // (x - cx) * depth / fx
-        point3.y = (point.y - K.at<float>(1, 2)) * depth / K.at<float>(1, 1); // (y - cy) * depth / fy
+        point3.x = (point.x - m_camera_intrinsics.at<float>(0, 2)) * depth / m_camera_intrinsics.at<float>(0, 0);
+        // (x - cx) * depth / fx
+        point3.y = (point.y - m_camera_intrinsics.at<float>(1, 2)) * depth / m_camera_intrinsics.at<float>(1, 1);
+        // (y - cy) * depth / fy
         point3.z = depth;
 
         points3d.push_back(point3);
@@ -91,7 +89,7 @@ std::vector<cv::Point3f> VO::point2d23d(std::vector<cv::Point2f> points2d, cv::M
 }
 
 void VO::decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point3f> &q1,
-                              std::vector<cv::Point3f> &q2) {
+                              std::vector<cv::Point3f> &q2) const {
     cv::Mat R1, R2;
     cv::decomposeEssentialMat(Emat, R1, R2, t);
     if (R1.type() != CV_32F) {
@@ -111,9 +109,9 @@ void VO::decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector
     for (unsigned i = 0; i < T_list.size(); i++) {
         cv::Mat T = cv::Mat::zeros(4, 4, CV_32F);
         formTransformMat(T_list[i][0], T_list[i][1], T);
-        cv::Mat Ptemp = P * T;
+        cv::Mat Ptemp = m_camera_projection * T;
         cv::Mat HQ1;
-        cv::triangulatePoints(P, Ptemp, q1, q2, HQ1);
+        cv::triangulatePoints(m_camera_projection, Ptemp, q1, q2, HQ1);
         cv::Mat HQ2 = T * HQ1;
 
         Eigen::MatrixXf EHQ1, EHQ2;
@@ -149,7 +147,7 @@ void VO::get_relativeScale(Eigen::MatrixXf &HQ1, Eigen::MatrixXf &HQ2, std::vect
 }
 
 
-void VO::formTransformMat(cv::Mat &R, cv::Mat &t, cv::Mat &T) {
+void VO::formTransformMat(const cv::Mat &R, const cv::Mat &t, cv::Mat &T) {
     cv::hconcat(R, t, T);
     T.push_back(cv::Mat::zeros(1, 4, T.type()));
     Eigen::MatrixXf tempT;
@@ -158,7 +156,7 @@ void VO::formTransformMat(cv::Mat &R, cv::Mat &t, cv::Mat &T) {
     cv::eigen2cv(tempT, T);
 }
 
-void VO::stringLine2Matrix(cv::Mat &tempMat, int &rows, int &cols, std::string &line) {
+void VO::stringLine2Matrix(cv::Mat &tempMat, const int &rows, const int &cols, std::string &line) {
     int r = 0;
     int c = 0;
     std::string strNum;
@@ -169,7 +167,7 @@ void VO::stringLine2Matrix(cv::Mat &tempMat, int &rows, int &cols, std::string &
         line.erase(0, 4);
     }
 
-    for (std::string::const_iterator i = line.begin(); i != line.end(); i++) {
+    for (std::string::const_iterator i = line.begin(); i != line.end(); ++i) {
         // If i is not a delim, then append it to strnum
         if (delim.find(*i) == std::string::npos) {
             strNum += *i;
