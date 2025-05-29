@@ -17,10 +17,13 @@ public:
     void get_poses(const std::vector<cv::Point2f> &points2d, const std::vector<cv::Point3f> &points3d,
                    cv::Mat &Trans_Mat) const;
 
+    void get_poses(std::vector<cv::Point2f> &points2d_1, std::vector<cv::Point2f> &points2d_2,
+                   cv::Mat &Trans_Mat) const;
+
     std::vector<cv::Point3f> point2d23d(const std::vector<cv::Point2f> &points2d, cv::Mat &depth_map);
 
-    void decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point3f> &q1,
-                              std::vector<cv::Point3f> &q2) const;
+    void decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point2f> &q1,
+                              std::vector<cv::Point2f> &q2) const;
 
     static void get_relativeScale(Eigen::MatrixXf &HQ1, Eigen::MatrixXf &HQ2, std::vector<float> &relative_scale);
 

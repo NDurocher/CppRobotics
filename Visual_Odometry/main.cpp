@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     }
     std::string dataDir = argv[1];
     std::string sequence = argv[2];
-    VO vo(dataDir, sequence, false);
+    VO vo(dataDir, sequence);
     ImageLoader loader(dataDir, sequence);
     OrbFeatureDetector fd;
     auto depth_stereo = cv::StereoBM::create(0, 7);
@@ -36,11 +36,14 @@ int main(int argc, char *argv[]) {
 
     // loader.show_video();
 
-    for (unsigned p = 0; p < 25; p++) {
+    for (int p = 0; p < 25; p++) {
         image_pair = loader.get_image_pair(p);
+        cv::imshow("Input image", image_pair.first);
+        cv::waitKey(500);
+        cv::destroyAllWindows();
 
         // get features from this image and give points z point from depth map
-        kpd1 = fd.compute_features(image_pair.second);
+        kpd2 = fd.compute_features(image_pair.first);
 
         if (p == 0) {
             current_pose = vo.ground_truth_poses()[p];
@@ -48,12 +51,15 @@ int main(int argc, char *argv[]) {
             q1.clear();
             q2.clear();
 
-            fd.get_matches(kpd1, kpd2, q1, q2);
+            auto _matches = fd.get_matches(kpd1, kpd2, q1, q2);
 
-            depth_stereo->compute(image_pair.first, image_pair.second, depth_image);
+            // depth_stereo->compute(image_pair.first, image_pair.second, depth_image);
 
-            q3d_2 = vo.point2d23d(q2, depth_image);
-            vo.get_poses(q1, q3d_2, Transform);
+            // q3d_2 = vo.point2d23d(q2, depth_image);
+            vo.get_poses(q1, q2, Transform);
+            // cv::Mat inv_transform = Transform.inv();
+            // std::cout << "x,y,z movement: " << inv_transform.at<float>(0, 3) << "," << inv_transform.at<float>(1, 3) <<
+            //         "," << inv_transform.at<float>(2, 3) << std::endl;
 
 
             Eigen::MatrixXf Ecp, Etrans;
@@ -62,13 +68,13 @@ int main(int argc, char *argv[]) {
             Ecp = Ecp * Etrans;
             cv::eigen2cv(Ecp, current_pose);
         }
-        kpd2 = kpd1;
+        kpd1 = kpd2;
 
-        est_x.push_back(current_pose.clone().at<float>(0, 3));
-        est_y.push_back(current_pose.clone().at<float>(2, 3));
+        est_x.push_back(current_pose.clone().at<float>(2, 3));
+        est_y.push_back(current_pose.clone().at<float>(0, 3) * -1);
 
-        true_x.push_back(vo.ground_truth_poses()[p].at<float>(0, 3));
-        true_y.push_back(vo.ground_truth_poses()[p].at<float>(2, 3));
+        true_x.push_back(vo.ground_truth_poses()[p].at<float>(1, 3));
+        true_y.push_back(vo.ground_truth_poses()[p].at<float>(0, 3));
     }
 
     // Create visualizer and generate plot
