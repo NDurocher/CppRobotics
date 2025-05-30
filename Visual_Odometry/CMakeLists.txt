@@ -10,12 +10,10 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif()
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-# find_package(Gnuplot 5.4 COMPONENTS ALL)
 find_package(OpenCV REQUIRED)
 set(OpenCV_INCLUDE_DIRS /Users/NathanDurocher/opencv/include)
 
 include_directories(${EIGEN_INCLUDE_DIRS}
-					${BOOST_INCLUDE_DIRS}
 					${OpenCV_INCLUDE_DIRS}
 					include/
 )
@@ -33,7 +31,6 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries (${PROJECT_NAME}
 						Eigen3::Eigen
-						${Gnuplot_LIBRARIES}
 						${OpenCV_LIBS}
 						CppRob::utils
 )

@@ -9,9 +9,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core/hal/interface.h>
-#include <opencv2/core/eigen.hpp>
-#include <opencv2/sfm//triangulation.hpp>
 #include <Eigen/Dense>
+#include <opencv2/core/eigen.hpp>
 
 std::vector<cv::Mat> vectorToMatVector2xN_Fast(const std::vector<std::vector<cv::Point2f> > &pointVectors) {
     std::vector<cv::Mat> matVector;
@@ -31,36 +30,6 @@ std::vector<cv::Mat> vectorToMatVector2xN_Fast(const std::vector<std::vector<cv:
 
     return matVector;
 }
-
-// Helper function to check if 3D points are degenerate
-bool isPointSetDegenerate(const std::vector<cv::Point3f> &points3d) {
-    if (points3d.size() < 4) return true;
-
-    // Check if all points are coplanar by computing volume of tetrahedron
-    cv::Point3f p1 = points3d[0];
-    cv::Point3f p2 = points3d[1];
-    cv::Point3f p3 = points3d[2];
-    cv::Point3f p4 = points3d[3];
-
-    // Vectors from p1 to other points
-    cv::Point3f v1 = p2 - p1;
-    cv::Point3f v2 = p3 - p1;
-    cv::Point3f v3 = p4 - p1;
-
-    // Cross product v1 × v2
-    cv::Point3f cross = cv::Point3f(
-        v1.y * v2.z - v1.z * v2.y,
-        v1.z * v2.x - v1.x * v2.z,
-        v1.x * v2.y - v1.y * v2.x
-    );
-
-    // Dot product with v3 gives volume (×6)
-    float volume = std::abs(cross.x * v3.x + cross.y * v3.y + cross.z * v3.z);
-
-    // If volume is too small, points are nearly coplanar
-    return volume < 1e-6;
-}
-
 
 VO::VO(const std::string &dataDir, std::string sequence, const bool use_left_image) {
     load_poses(dataDir, sequence);
@@ -124,7 +93,7 @@ void VO::get_poses(std::vector<cv::Point2f> &points2d_1, std::vector<cv::Point2f
     cv::Mat R, r, t;
 
     cv::Mat Emat = cv::findEssentialMat(points2d_1, points2d_2, m_camera_intrinsics,
-                                        cv::RANSAC, 0.999, 1.0, {});
+                                        cv::RANSAC);
 
     if (Emat.empty()) {
         std::cerr << "Failed to compute Essential Matrix" << std::endl;
@@ -133,11 +102,7 @@ void VO::get_poses(std::vector<cv::Point2f> &points2d_1, std::vector<cv::Point2f
     }
 
     decomp_essential_mat(Emat, r, t, points2d_1, points2d_2);
-    // cv::Rodrigues(r, R);
     formTransformMat(r, t, Trans_Mat);
-
-    // cv::solvePnPRansac(points3d_cv, points2d_1, m_camera_intrinsics, {}, r, t);
-    // formTransformMat(R, t, Trans_Mat);
 }
 
 std::vector<cv::Point3f> VO::point2d23d(const std::vector<cv::Point2f> &points2d, cv::Mat &depth_map) {
@@ -185,17 +150,19 @@ void VO::decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector
         {R2, -t}
     };
 
-    std::vector<int> pos_count = {0, 0, 0, 0};
+
     std::vector<std::vector<cv::Point3f> > triangulated_points(4);
 
     // Test each of the 4 possible solutions
-    for (size_t i = 0; i < T_list.size(); i++) {
+    int best_idx = 0;
+    int max_count = 0;
+    for (int i = 0; i < T_list.size(); i++) {
         // Create projection matrices
-        cv::Mat P1 = cv::Mat::zeros(3, 4, CV_32F);
+        // cv::Mat P1 = cv::Mat::zeros(3, 4, CV_32F);
         cv::Mat P2 = cv::Mat::zeros(3, 4, CV_32F);
 
         // P1 = K[I|0] (first camera at origin)
-        m_camera_intrinsics.copyTo(P1(cv::Rect(0, 0, 3, 3)));
+        auto P1 = m_camera_projection.clone();
 
         // P2 = K[R|t] (second camera with test pose)
         cv::Mat RT = cv::Mat::zeros(3, 4, CV_32F);
@@ -209,7 +176,7 @@ void VO::decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector
 
         // Convert to 3D points and check cheirality (positive depth)
         triangulated_points[i].clear();
-        pos_count[i] = 0;
+        int pos_count = 0;
 
         for (int j = 0; j < points4d.cols; j++) {
             float w = points4d.at<float>(3, j);
@@ -228,85 +195,26 @@ void VO::decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector
 
                 // Check depth in second camera (should also be positive)
                 if (point3d_cam2.at<float>(2, 0) > 0) {
-                    pos_count[i]++;
+                    pos_count++;
                     triangulated_points[i].emplace_back(x, y, z);
                 }
             }
         }
-
-        std::cout << "Solution " << i << ": " << pos_count[i]
-                << " points with positive depth" << std::endl;
+        if (pos_count > max_count) {
+            max_count = pos_count;
+            best_idx = i;
+        }
     }
 
-    // Choose solution with most points having positive depth in both cameras
-    int idx_max = std::distance(pos_count.begin(),
-                                std::max_element(pos_count.begin(), pos_count.end()));
-
-    if (pos_count[idx_max] < 10) {
+    if (max_count < 10) {
         // Minimum threshold for reliable solution
-        std::cerr << "Warning: Best solution only has " << pos_count[idx_max]
+        std::cerr << "Warning: Best solution only has " << max_count
                 << " valid points" << std::endl;
     }
 
-    R = T_list[idx_max][0].clone();
-    t = T_list[idx_max][1].clone();
-
-    std::cout << "Selected solution " << idx_max << " with "
-            << pos_count[idx_max] << " valid points" << std::endl;
-    // cv::Mat R1, R2;
-    // cv::decomposeEssentialMat(Emat, R1, R2, t);
-    // if (R1.type() != CV_32F) {
-    //     R1.convertTo(R1, CV_32F);
-    //     R2.convertTo(R2, CV_32F);
-    //     t.convertTo(t, CV_32F);
-    // }
-    // std::vector<std::vector<cv::Mat> > T_list = {
-    //     {R1, t},
-    //     {R1, -t},
-    //     {R2, t},
-    //     {R2, -t}
-    // };
-    //
-    // std::vector<int> pos_count = {0, 0, 0, 0};
-    // std::vector<float> relative_scale;
-    // for (unsigned i = 0; i < T_list.size(); i++) {
-    //     cv::Mat T = cv::Mat::zeros(4, 4, CV_32F);
-    //     formTransformMat(T_list[i][0], T_list[i][1], T);
-    //     cv::Mat Ptemp = m_camera_projection * T;
-    //     cv::Mat HQ1;
-    //     cv::triangulatePoints(m_camera_projection, Ptemp, q1, q2, HQ1);
-    //     cv::Mat HQ2 = T * HQ1;
-    //
-    //     Eigen::MatrixXf EHQ1, EHQ2;
-    //     cv::cv2eigen(HQ1, EHQ1);
-    //     cv::cv2eigen(HQ2, EHQ2);
-    //     for (unsigned c = 0; c < EHQ1.cols(); c++) {
-    //         EHQ1.block(0, c, 4, 1) /= EHQ1(3, c);
-    //         EHQ2.block(0, c, 4, 1) /= EHQ2(3, c);
-    //         if (EHQ1(2, c) > 0) {
-    //             pos_count[i]++;
-    //         }
-    //         if (EHQ2(2, c) > 0) {
-    //             pos_count[i]++;
-    //         }
-    //     }
-    //     get_relativeScale(EHQ1, EHQ2, relative_scale);
-    // }
-    //
-    // int idx_max = std::distance(pos_count.begin(), std::max_element(pos_count.begin(), pos_count.end()));
-    // R = T_list[idx_max][0];
-    // t = T_list[idx_max][1] * relative_scale[idx_max];
-}
-
-void VO::get_relativeScale(Eigen::MatrixXf &HQ1, Eigen::MatrixXf &HQ2, std::vector<float> &relative_scale) {
-    Eigen::MatrixXf Temp1 = HQ1.transpose().block(0, 0, HQ1.cols() - 1, HQ1.rows() - 1) -
-                            HQ1.transpose().block(1, 0, HQ1.cols() - 1, HQ1.rows() - 1);
-    Eigen::MatrixXf Temp2 = HQ2.transpose().block(0, 0, HQ2.cols() - 1, HQ2.rows() - 1) -
-                            HQ2.transpose().block(1, 0, HQ2.cols() - 1, HQ2.rows() - 1);
-    Temp1.colwise().normalize();
-    Temp2.colwise().normalize();
-
-    relative_scale.push_back((Temp1.array() / Temp2.array()).mean());
+    R = T_list[best_idx][0].clone();
+    t = T_list[best_idx][1].clone();
+    computeScale(triangulated_points[best_idx], R, t);
 }
 
 
@@ -362,4 +270,79 @@ void VO::stringLine2Matrix(cv::Mat &tempMat, const int &rows, const int &cols, s
 
 std::vector<cv::Mat> VO::ground_truth_poses() {
     return poses;
+}
+
+void VO::computeScale(const std::vector<cv::Point3f> &triangulated_points,
+                      const cv::Mat &R, cv::Mat &t,
+                      float camera_height, // meters above ground
+                      float camera_pitch, // radians (0 = looking straight ahead)
+                      float motion_threshold) const {
+    if (triangulated_points.empty()) {
+        std::cerr << "No triangulated points for scale recovery" << std::endl;
+        return;
+    }
+
+    // Step 1: Project 3D points to ground plane (Y-Z coordinates in camera frame)
+    std::vector<cv::Point2f> plane_points;
+    for (const auto &pt: triangulated_points) {
+        // Assuming camera coordinate system: X=forward, Y=left, Z=up
+        plane_points.emplace_back(pt.y, pt.z); // Y-Z plane projection
+    }
+
+    if (plane_points.empty()) {
+        return;
+    }
+
+    // Step 2: Create ground plane normal vector based on camera pitch
+    cv::Point2f normal(sin(camera_pitch), -cos(camera_pitch)); // Normal to expected ground plane
+
+    // Step 3: Compute distance from each point to the expected ground plane
+    std::vector<float> distances;
+    for (const auto &pt: plane_points) {
+        // Distance = dot product with normal vector
+        float dist = pt.x * normal.x + pt.y * normal.y;
+        distances.push_back(dist);
+    }
+
+    // Step 4: Find median distance for robust estimation
+    std::vector<float> sorted_distances = distances;
+    std::sort(sorted_distances.begin(), sorted_distances.end());
+    float median_dist = sorted_distances[sorted_distances.size() / 2];
+
+    // Step 5: Robust consensus - find the distance with most support
+    float sigma = median_dist / 50.0f; // Adaptive bandwidth
+    float weight = 1.0f / (2.0f * sigma * sigma);
+    float best_sum = 0.0f;
+    float best_distance = median_dist;
+
+    for (size_t i = 0; i < distances.size(); i++) {
+        // Only consider points that are reasonable candidates for ground plane
+        if (distances[i] > median_dist / motion_threshold) {
+            float sum = 0.0f;
+
+            // Count support from other points using Gaussian weighting
+            for (size_t j = 0; j < distances.size(); j++) {
+                float diff = distances[j] - distances[i];
+                sum += exp(-diff * diff * weight);
+            }
+
+            // Keep track of distance with maximum support
+            if (sum > best_sum) {
+                best_sum = sum;
+                best_distance = distances[i];
+            }
+        }
+    }
+
+    // Step 6: Compute scale factor
+    if (std::abs(best_distance) < 1e-6) {
+        std::cerr << "Ground plane distance too small for reliable scaling" << std::endl;
+        return;
+    }
+
+    // Scale factor = known_height / estimated_height
+    float scale_factor = camera_height / std::abs(best_distance);
+
+    // Apply scale to translation
+    t = t * scale_factor;
 }

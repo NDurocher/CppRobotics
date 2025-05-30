@@ -4,7 +4,6 @@
 #include <string>
 
 #include <opencv2/calib3d.hpp>
-#include <Eigen/Dense>
 
 class VO {
 public:
@@ -25,13 +24,17 @@ public:
     void decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point2f> &q1,
                               std::vector<cv::Point2f> &q2) const;
 
-    static void get_relativeScale(Eigen::MatrixXf &HQ1, Eigen::MatrixXf &HQ2, std::vector<float> &relative_scale);
-
     static void formTransformMat(const cv::Mat &R, const cv::Mat &t, cv::Mat &T);
 
     static void stringLine2Matrix(cv::Mat &tempMat, const int &rows, const int &cols, std::string &line);
 
     std::vector<cv::Mat> ground_truth_poses();
+
+    void computeScale(const std::vector<cv::Point3f> &triangulated_points,
+                       const cv::Mat &R, cv::Mat &t,
+                       float camera_height = 1.6f, // meters above ground
+                       float camera_pitch = 0.0f, // radians (0 = looking straight ahead)
+                       float motion_threshold = 5.0f) const;
 
 private:
     std::vector<cv::Mat> camera_calibrations; // Contains calibrations for both Left and Right Camera
