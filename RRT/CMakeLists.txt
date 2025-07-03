@@ -10,15 +10,11 @@ if(POLICY CMP0167)
 endif()
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-find_package (Boost REQUIRED COMPONENTS iostreams system filesystem)
-find_package (Gnuplot 5.4 COMPONENTS ALL)
 
 include_directories(${EIGEN_INCLUDE_DIRS}
 					${PARENT_DIR}/gnuplot-iostream
 					include/
 )
-
-link_directories(${PARENT_DIR}/gnuplot-iostream)
 
 # add the executable
 add_executable(${PROJECT_NAME}
@@ -29,8 +25,5 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries (${PROJECT_NAME}
 		Eigen3::Eigen
-		Boost::iostreams
-		Boost::system
-		Boost::filesystem
-		${Gnuplot_LIBRARIES}
+		ImGuiImPlotLib
 )
