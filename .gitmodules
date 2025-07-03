@@ -1,3 +1,12 @@
 [submodule "gnuplot-iostream"]
 	path = gnuplot-iostream
 	url = https://github.com/dstahlke/gnuplot-iostream.git
+[submodule "library/imgui"]
+	path = library/imgui
+	url = git@github.com:ocornut/imgui.git
+[submodule "library/glfw"]
+	path = library/imgui/glfw
+	url = git@github.com:glfw/glfw.git
+[submodule "library/implot"]
+	path = library/imgui/implot
+	url = git@github.com:epezent/implot.git
