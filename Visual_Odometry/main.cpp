@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 #include <opencv2/core/eigen.hpp>
 
+#include "include/pose_loader.h"
 #include "utils/plot_visualizer.h"
 
 int main(int argc, char *argv[]) {
@@ -15,6 +16,7 @@ int main(int argc, char *argv[]) {
     std::string dataDir = argv[1];
     std::string sequence = argv[2];
     VO vo(dataDir, sequence);
+    PoseLoader pose_loader(dataDir, sequence);
     ImageLoader loader(dataDir, sequence);
     OrbFeatureDetector fd;
     // auto disparity_stereo = cv::StereoBM::create(0, 7);
@@ -35,14 +37,14 @@ int main(int argc, char *argv[]) {
     std::vector<float> true_y;
 
     // loader.show_video();
-    auto frame_nums = vo.ground_truth_poses().size();
+    auto frame_nums = pose_loader.ground_truth_poses().size();
     for (int p = 0; p < frame_nums; p++) {
         image_pair = loader.get_image_pair(p);
         // get features from this image and give points z point from depth map
         kpd2 = fd.compute_features(image_pair.first);
 
         if (p == 0) {
-            current_pose = vo.ground_truth_poses()[p];
+            current_pose = pose_loader.ground_truth_poses()[p];
         } else {
             q1.clear();
             q2.clear();
@@ -64,8 +66,8 @@ int main(int argc, char *argv[]) {
         est_x.push_back(current_pose.clone().at<float>(0, 3));
         est_y.push_back(current_pose.clone().at<float>(2, 3));
 
-        true_x.push_back(vo.ground_truth_poses()[p].at<float>(0, 3));
-        true_y.push_back(vo.ground_truth_poses()[p].at<float>(2, 3));
+        true_x.push_back(pose_loader.ground_truth_poses()[p].at<float>(0, 3));
+        true_y.push_back(pose_loader.ground_truth_poses()[p].at<float>(2, 3));
     }
 
     // Create visualizer and generate plot

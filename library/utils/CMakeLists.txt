@@ -7,7 +7,6 @@ project(utils VERSION 0.1.0
 find_package(Eigen3 3.3 REQUIRED NO_MODULE
 )
 find_package(OpenCV REQUIRED)
-set(OpenCV_INCLUDE_DIRS /Users/NathanDurocher/opencv/include)
 
 # Create the library target
 add_library(${PROJECT_NAME} STATIC

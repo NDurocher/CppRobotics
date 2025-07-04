@@ -1,39 +1,16 @@
 #include "vo.h"
+#include "utils.h"
+
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include <vector>
-#include <string>
 #include <algorithm>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core/hal/interface.h>
-#include <Eigen/Dense>
-#include <opencv2/core/eigen.hpp>
-
-std::vector<cv::Mat> vectorToMatVector2xN_Fast(const std::vector<std::vector<cv::Point2f> > &pointVectors) {
-    std::vector<cv::Mat> matVector;
-    matVector.reserve(pointVectors.size());
-
-    for (const auto &points: pointVectors) {
-        if (!points.empty()) {
-            // Create 2×N matrix by reshaping the Point2f data
-            cv::Mat pointsMat(points.size(), 1, CV_32FC2, (void *) points.data());
-            cv::Mat mat = pointsMat.reshape(1, 2).clone(); // Reshape to 2×N and clone for safety
-
-            matVector.push_back(mat);
-        } else {
-            matVector.push_back(cv::Mat()); // Empty Mat for empty vectors
-        }
-    }
-
-    return matVector;
-}
 
 VO::VO(const std::string &dataDir, std::string sequence, const bool use_left_image) {
-    load_poses(dataDir, sequence);
-    std::cout << "GT Poses Loaded" << std::endl;
     load_calib(dataDir, sequence, use_left_image);
     std::cout << "Camera Calibrations Loaded" << std::endl;
 }
@@ -48,7 +25,7 @@ void VO::load_calib(std::string filePath, std::string &sequence, bool use_left_i
     cv::Mat tempMat = cv::Mat::zeros(rows, cols, CV_32F);
     std::string line;
     while (getline(calibFile, line)) {
-        stringLine2Matrix(tempMat, rows, cols, line);
+        vo_utils::stringLine2Matrix(tempMat, rows, cols, line);
         camera_calibrations.push_back(tempMat.clone());
     }
 
@@ -62,30 +39,12 @@ void VO::load_calib(std::string filePath, std::string &sequence, bool use_left_i
     m_camera_projection = camera_matrix.rowRange(0, 3).colRange(0, 4);
 }
 
-void VO::load_poses(std::string filePath, std::string &sequence) {
-    filePath.append("poses/" + sequence + ".txt");
-
-    std::ifstream poseFile(filePath);
-
-    int rows = 3;
-    int cols = 4;
-    cv::Mat tempMat = cv::Mat::zeros(rows, cols, CV_32F);
-
-    std::string line;
-    while (getline(poseFile, line)) {
-        stringLine2Matrix(tempMat, rows, cols, line);
-        poses.push_back(tempMat.clone());
-    }
-    poseFile.close();
-    m_num_frames = poses.size();
-}
-
 void VO::get_poses(const std::vector<cv::Point2f> &points2d, const std::vector<cv::Point3f> &points3d,
                    cv::Mat &Trans_Mat) const {
     cv::Mat R, r, t;
     cv::solvePnPRansac(points3d, points2d, m_camera_intrinsics, {}, r, t);
     cv::Rodrigues(r, R);
-    formTransformMat(R, t, Trans_Mat);
+    vo_utils::formTransformMat(R, t, Trans_Mat);
 }
 
 void VO::get_poses(std::vector<cv::Point2f> &points2d_1, std::vector<cv::Point2f> &points2d_2,
@@ -101,8 +60,10 @@ void VO::get_poses(std::vector<cv::Point2f> &points2d_1, std::vector<cv::Point2f
         return;
     }
 
-    decomp_essential_mat(Emat, r, t, points2d_1, points2d_2);
-    formTransformMat(r, t, Trans_Mat);
+    cv::Mat homography_mat = cv::findHomography(points2d_1, points2d_2);
+    const cv::Point2d camera_centre(m_camera_intrinsics.at<float>(0, 2), m_camera_intrinsics.at<float>(1, 2));
+    cv::recoverPose(Emat, points2d_1, points2d_2, R, t, m_camera_intrinsics.at<float>(0, 0), camera_centre);
+    vo_utils::formTransformMat(R, t, Trans_Mat);
 }
 
 std::vector<cv::Point3f> VO::point2d23d(const std::vector<cv::Point2f> &points2d, cv::Mat &depth_map) {
@@ -130,153 +91,98 @@ std::vector<cv::Point3f> VO::point2d23d(const std::vector<cv::Point2f> &points2d
     return points3d;
 }
 
-void VO::decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point2f> &q1,
-                              std::vector<cv::Point2f> &q2) const {
-    cv::Mat R1, R2;
-    cv::decomposeEssentialMat(Emat, R1, R2, t);
-
-    // Ensure correct data type
-    if (R1.type() != CV_32F) {
-        R1.convertTo(R1, CV_32F);
-        R2.convertTo(R2, CV_32F);
-        t.convertTo(t, CV_32F);
-    }
-
-    // Four possible [R|t] combinations from Essential Matrix decomposition
-    std::vector<std::vector<cv::Mat> > T_list = {
-        {R1, t},
-        {R1, -t},
-        {R2, t},
-        {R2, -t}
-    };
-
-
-    std::vector<std::vector<cv::Point3f> > triangulated_points(4);
-
-    // Test each of the 4 possible solutions
-    int best_idx = 0;
-    int max_count = 0;
-    for (int i = 0; i < T_list.size(); i++) {
-        // Create projection matrices
-        // cv::Mat P1 = cv::Mat::zeros(3, 4, CV_32F);
-        cv::Mat P2 = cv::Mat::zeros(3, 4, CV_32F);
-
-        // P1 = K[I|0] (first camera at origin)
-        auto P1 = m_camera_projection.clone();
-
-        // P2 = K[R|t] (second camera with test pose)
-        cv::Mat RT = cv::Mat::zeros(3, 4, CV_32F);
-        T_list[i][0].copyTo(RT(cv::Rect(0, 0, 3, 3)));
-        T_list[i][1].copyTo(RT(cv::Rect(3, 0, 1, 3)));
-        P2 = m_camera_intrinsics * RT;
-
-        // Triangulate points
-        cv::Mat points4d;
-        cv::triangulatePoints(P1, P2, q1, q2, points4d);
-
-        // Convert to 3D points and check cheirality (positive depth)
-        triangulated_points[i].clear();
-        int pos_count = 0;
-
-        for (int j = 0; j < points4d.cols; j++) {
-            float w = points4d.at<float>(3, j);
-            if (std::abs(w) < 1e-6) continue; // Skip points at infinity
-
-            // Convert from homogeneous coordinates
-            float x = points4d.at<float>(0, j) / w;
-            float y = points4d.at<float>(1, j) / w;
-            float z = points4d.at<float>(2, j) / w;
-
-            // Check depth in first camera (should be positive)
-            if (z > 0) {
-                // Transform to second camera coordinate system
-                cv::Mat point3d_cam1 = (cv::Mat_<float>(3, 1) << x, y, z);
-                cv::Mat point3d_cam2 = T_list[i][0] * point3d_cam1 + T_list[i][1];
-
-                // Check depth in second camera (should also be positive)
-                if (point3d_cam2.at<float>(2, 0) > 0) {
-                    pos_count++;
-                    triangulated_points[i].emplace_back(x, y, z);
-                }
-            }
-        }
-        if (pos_count > max_count) {
-            max_count = pos_count;
-            best_idx = i;
-        }
-    }
-
-    if (max_count < 10) {
-        // Minimum threshold for reliable solution
-        std::cerr << "Warning: Best solution only has " << max_count
-                << " valid points" << std::endl;
-    }
-
-    R = T_list[best_idx][0].clone();
-    t = T_list[best_idx][1].clone();
-    computeScale(triangulated_points[best_idx], R, t);
-}
-
-
-void VO::formTransformMat(const cv::Mat &R, const cv::Mat &t, cv::Mat &T) {
-    cv::hconcat(R, t, T);
-    T.push_back(cv::Mat::zeros(1, 4, T.type()));
-    Eigen::MatrixXf tempT;
-    cv::cv2eigen(T, tempT);
-    tempT(3, 3) = 1.0;
-    cv::eigen2cv(tempT, T);
-}
-
-void VO::stringLine2Matrix(cv::Mat &tempMat, const int &rows, const int &cols, std::string &line) {
-    int r = 0;
-    int c = 0;
-    std::string strNum;
-    const std::string delim = " ";
-
-    // if the line contains the sensor prefix, erase it
-    if (line.find('P') != std::string::npos) {
-        line.erase(0, 4);
-    }
-
-    for (std::string::const_iterator i = line.begin(); i != line.end(); ++i) {
-        // If i is not a delim, then append it to strnum
-        if (delim.find(*i) == std::string::npos) {
-            strNum += *i;
-            if (i + 1 != line.end()) {
-                continue;
-            }
-        }
-        if (strNum.empty()) {
-            continue;
-        }
-
-        float number;
-        std::istringstream(strNum) >> number;
-        tempMat.at<float>(r, c) = number;
-        if ((c + 1) == cols) {
-            if ((r + 1) == rows) {
-                strNum.clear();
-                break;
-            }
-            c = 0;
-            r++;
-            strNum.clear();
-            continue;
-        }
-        c++;
-        strNum.clear();
-    }
-}
-
-std::vector<cv::Mat> VO::ground_truth_poses() {
-    return poses;
-}
+// void VO::decomp_essential_mat(cv::Mat &Emat, cv::Mat &R, cv::Mat &t, std::vector<cv::Point2f> &q1,
+//                               std::vector<cv::Point2f> &q2) const {
+//     cv::Mat R1, R2;
+//     cv::decomposeEssentialMat(Emat, R1, R2, t);
+//
+//     // Ensure correct data type
+//     if (R1.type() != CV_32F) {
+//         R1.convertTo(R1, CV_32F);
+//         R2.convertTo(R2, CV_32F);
+//         t.convertTo(t, CV_32F);
+//     }
+//
+//     // Four possible [R|t] combinations from Essential Matrix decomposition
+//     std::vector<std::vector<cv::Mat> > T_list = {
+//         {R1, t},
+//         {R1, -t},
+//         {R2, t},
+//         {R2, -t}
+//     };
+//
+//
+//     std::vector<std::vector<cv::Point3f> > triangulated_points(4);
+//
+//     // Test each of the 4 possible solutions
+//     int best_idx = 0;
+//     int max_count = 0;
+//     for (int i = 0; i < T_list.size(); i++) {
+//         // Create projection matrices
+//         // cv::Mat P1 = cv::Mat::zeros(3, 4, CV_32F);
+//         cv::Mat P2 = cv::Mat::zeros(3, 4, CV_32F);
+//
+//         // P1 = K[I|0] (first camera at origin)
+//         auto P1 = m_camera_projection.clone();
+//
+//         // P2 = K[R|t] (second camera with test pose)
+//         cv::Mat RT = cv::Mat::zeros(3, 4, CV_32F);
+//         T_list[i][0].copyTo(RT(cv::Rect(0, 0, 3, 3)));
+//         T_list[i][1].copyTo(RT(cv::Rect(3, 0, 1, 3)));
+//         P2 = m_camera_intrinsics * RT;
+//
+//         // Triangulate points
+//         cv::Mat points4d;
+//         cv::triangulatePoints(P1, P2, q1, q2, points4d);
+//
+//         // Convert to 3D points and check cheirality (positive depth)
+//         triangulated_points[i].clear();
+//         int pos_count = 0;
+//
+//         for (int j = 0; j < points4d.cols; j++) {
+//             float w = points4d.at<float>(3, j);
+//             if (std::abs(w) < 1e-6) continue; // Skip points at infinity
+//
+//             // Convert from homogeneous coordinates
+//             float x = points4d.at<float>(0, j) / w;
+//             float y = points4d.at<float>(1, j) / w;
+//             float z = points4d.at<float>(2, j) / w;
+//
+//             // Check depth in first camera (should be positive)
+//             if (z > 0) {
+//                 // Transform to second camera coordinate system
+//                 cv::Mat point3d_cam1 = (cv::Mat_<float>(3, 1) << x, y, z);
+//                 cv::Mat point3d_cam2 = T_list[i][0] * point3d_cam1 + T_list[i][1];
+//
+//                 // Check depth in second camera (should also be positive)
+//                 if (point3d_cam2.at<float>(2, 0) > 0) {
+//                     pos_count++;
+//                     triangulated_points[i].emplace_back(x, y, z);
+//                 }
+//             }
+//         }
+//         if (pos_count > max_count) {
+//             max_count = pos_count;
+//             best_idx = i;
+//         }
+//     }
+//
+//     if (max_count < 10) {
+//         // Minimum threshold for reliable solution
+//         std::cerr << "Warning: Best solution only has " << max_count
+//                 << " valid points" << std::endl;
+//     }
+//
+//     R = T_list[best_idx][0].clone();
+//     t = T_list[best_idx][1].clone();
+//     computeScale(triangulated_points[best_idx], R, t);
+// }
 
 void VO::computeScale(const std::vector<cv::Point3f> &triangulated_points,
                       const cv::Mat &R, cv::Mat &t,
                       float camera_height, // meters above ground
                       float camera_pitch, // radians (0 = looking straight ahead)
-                      float motion_threshold) const {
+                      float motion_threshold) {
     if (triangulated_points.empty()) {
         std::cerr << "No triangulated points for scale recovery" << std::endl;
         return;

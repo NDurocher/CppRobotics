@@ -7,6 +7,8 @@ project(CppRobotics VERSION 0.1.0
 # specify the C++ standard
 set(CMAKE_CXX_FLAGS "${CMAKE__CXX_FLAGS} -std=c++20")
 
+set(OpenCV_INCLUDE_DIRS /Users/NathanDurocher/opencv/include)
+
 # include user libraries
 add_subdirectory(library)
 
